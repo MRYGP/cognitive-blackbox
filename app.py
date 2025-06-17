@@ -550,7 +550,7 @@ class CognitiveBlackBoxApp:
                 st.sidebar.write(response)
 
 def main():
-        """Main function"""
+    """Main function"""
     try:
         app = CognitiveBlackBoxApp()
         app.run()
