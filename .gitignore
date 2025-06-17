@@ -1,0 +1,261 @@
+# Cognitive Black Box - Git Ignore Configuration
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# =============================================================================
+# ENVIRONMENT & SECRETS
+# =============================================================================
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# API Keys and secrets
+secrets.json
+api_keys.txt
+credentials.json
+
+# =============================================================================
+# STREAMLIT
+# =============================================================================
+
+# Streamlit cache
+.streamlit/
+
+# Streamlit secrets
+secrets.toml
+
+# =============================================================================
+# IDE & EDITORS
+# =============================================================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# OPERATING SYSTEMS
+# =============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+
+# Linux
+*~
+
+# =============================================================================
+# LOGS & TEMPORARY FILES
+# =============================================================================
+
+# Log files
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.bak
+*.backup
+
+# Cache directories
+cache/
+.cache/
+tmp/
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+
+# User uploaded files (if any)
+uploads/
+user_data/
+
+# Generated assets
+generated/
+output/
+
+# Performance profiling
+*.prof
+*.profile
+
+# Database files (if using local SQLite)
+*.db
+*.sqlite
+*.sqlite3
+
+# AI Model files (if downloading models locally)
+models/
+*.model
+*.pkl
+*.joblib
+
+# Audio files for magic moments (until properly organized)
+audio_temp/
+*.wav
+*.mp3
+*.ogg
+
+# =============================================================================
+# DEPLOYMENT
+# =============================================================================
+
+# Docker
+.dockerignore
+Dockerfile.dev
+
+# Kubernetes
+k8s-dev/
+*.yaml.dev
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# =============================================================================
+# DEVELOPMENT & TESTING
+# =============================================================================
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Performance benchmarks
+benchmarks/
+*.benchmark
+
+# Mock data
+mock_data/
+test_data/
+
+# Development scripts
+dev_scripts/
+setup_dev.py
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+
+# Generated documentation
+docs/_build/
+site/
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+# Node modules (if using any JS tools)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Sass cache
+.sass-cache/
+
+# Compressed files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
