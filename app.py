@@ -550,7 +550,7 @@ class CognitiveBlackBoxApp:
                 st.sidebar.write(response)
 
 def main():
-    """Main function"""  # <-- 关键：向内缩进4个空格
+        """Main function"""
     try:
         app = CognitiveBlackBoxApp()
         app.run()
