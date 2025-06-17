@@ -373,11 +373,74 @@ class CognitiveBlackBoxApp:
             st.markdown('<div class="role-container role-assistant">', unsafe_allow_html=True)
             
             # Personalized feedback
+            # Enhanced personalized feedback
             user_decision = getattr(st.session_state, 'user_decision', '未知')
-            feedback_content = f"""
-            ### 恭喜！你已完成本次认知升级。
             
-            **基于你在第一幕的选择（{user_decision}），我们为你定制了专属的决策安全系统。**
+            # Generate personalized feedback based on user's choice
+            feedback_text = ""
+            warning_level = ""
+            
+            if user_decision == "全力投入":
+                feedback_text = """
+                **⚠️ 高风险偏好特征识别**
+                
+                您在面对麦道夫这样的"完美机会"时选择了**全力投入**，这表明：
+                - 您对权威身份的信任度很高
+                - 您容易被"完美"的历史业绩吸引
+                - 您需要特别警惕**光环效应**的影响
+                
+                **个性化建议**：未来遇到类似机会时，强制自己等待48小时再做决定。
+                """
+                warning_level = "高度警惕"
+                
+            elif user_decision == "大部分投入":
+                feedback_text = """
+                **📊 中高风险偏好特征**
+                
+                您选择了**大部分投入**，说明您在权威面前保持了一定理性，但仍然：
+                - 容易被权威身份影响判断
+                - 对"稳定收益"的吸引力较高
+                - 需要加强**独立验证**能力
+                
+                **个性化建议**：建立"魔鬼代言人"机制，每个重大决策前找人唱反调。
+                """
+                warning_level = "适度警惕"
+                
+            elif user_decision == "小部分试水":
+                feedback_text = """
+                **✅ 谨慎型决策特征**
+                
+                您选择了**小部分试水**，展现了优秀的风险控制意识：
+                - 对权威身份保持了相对理性
+                - 具备一定的**怀疑精神**
+                - 已经有了基本的风险分散概念
+                
+                **个性化建议**：继续保持这种谨慎，并系统化您的验证流程。
+                """
+                warning_level = "继续保持"
+                
+            elif user_decision == "放弃投资":
+                feedback_text = """
+                **🛡️ 高警惕性决策特征**
+                
+                您选择了**放弃投资**，说明您具备了优秀的风险嗅觉：
+                - 对"完美机会"保持了高度警惕
+                - 不容易被权威身份迷惑
+                - 具备强烈的**独立思考**能力
+                
+                **个性化建议**：您的直觉很好，现在需要的是系统化的决策框架。
+                """
+                warning_level = "优秀水平"
+            
+            personalized_intro = f"""
+            ### 🎯 基于您的选择的个性化分析
+            
+            **您的选择：{user_decision}**
+            **风险警惕等级：{warning_level}**
+            
+            {feedback_text}
+            """
+            st.markdown(personalized_intro)
             """
             st.markdown(feedback_content)
             
