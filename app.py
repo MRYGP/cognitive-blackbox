@@ -460,9 +460,10 @@ class CognitiveBlackBoxApp:
             
             # Decision safety card
             # Decision safety card
+            # Decision safety card
             card_content = """### 🛡️ 高级决策安全系统
 
-**核心原则: 权威越强，越要验证；机会越好，越要谨慎。**
+**核心原则: 权威越强, 越要验证; 机会越好, 越要谨慎。**
 
 #### 🔍 四维独立验证矩阵
 
@@ -476,14 +477,13 @@ class CognitiveBlackBoxApp:
 
 #### ⚠️ 高危信号预警
 
-- "这是商业机密，无法透露..."
+- "这是商业机密, 无法透露..."
 - "所有聪明人都在参与..."
 - 过于完美的历史业绩曲线
 - 拒绝第三方审计或托管
 
-**智慧不是永不犯错，而是在犯错的代价变得昂贵之前，就已获得免疫力。**"""
+**智慧不是永不犯错, 而是在犯错的代价变得昂贵之前, 就已获得免疫力。**"""
             
-            st.success(card_content)
             st.success(card_content)
             
             st.balloons()  # 庆祝效果
