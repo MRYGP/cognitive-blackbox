@@ -459,6 +459,7 @@ class CognitiveBlackBoxApp:
             st.markdown(feedback_content)
             
             # Decision safety card
+            # Decision safety card
             card_content = """### 🛡️ 高级决策安全系统
 
 **核心原则: 权威越强越要验证, 机会越好越要谨慎**
@@ -466,24 +467,20 @@ class CognitiveBlackBoxApp:
 #### 🔍 四维独立验证矩阵
 
 **1. 身份验证:** 权威与能力是否匹配?
-
 **2. 能力验证:** 业绩是否有第三方审计?
-
 **3. 信息验证:** 是否要求接受黑盒子?
-
 **4. 独立验证:** 是否寻找了反对意见?
 
 #### ⚠️ 高危信号预警
 
 - 这是商业机密无法透露
-- 所有聪明人都在参与  
+- 所有聪明人都在参与
 - 过于完美的历史业绩曲线
 - 拒绝第三方审计或托管
 
 **智慧不是永不犯错而是在代价昂贵之前获得免疫力**"""
             
             st.success(card_content)
-            
             st.balloons()
             
             if st.button("重新开始体验", use_container_width=True):
