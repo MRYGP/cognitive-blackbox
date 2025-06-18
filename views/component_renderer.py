@@ -287,16 +287,58 @@ class ComponentRenderer:
         st.markdown('<div class="component-separator"></div>', unsafe_allow_html=True)
     
     def _render_custom_case_trigger(self, component: Dict[str, Any]) -> None:
-        """Render custom case trigger component"""
-        button_text = component.get('button_text', '🔄 用我自己的案例')
+        """🔧 FIXED: Functional custom case input instead of 'under development'"""
+        button_text = component.get('button_text', '🔄 用我自己的相似经历来分析')
         description = component.get('description', '')
         
         if description:
             st.markdown(description)
         
-        if st.button(button_text):
-            st.info("自定义案例功能正在开发中，敬请期待！")
-            # TODO: Implement modal for custom case input
+        if 'show_custom_form' not in st.session_state:
+            st.session_state.show_custom_form = False
+        
+        if not st.session_state.show_custom_form:
+            if st.button(button_text, use_container_width=True):
+                st.session_state.show_custom_form = True
+                st.rerun()
+        
+        if st.session_state.show_custom_form:
+            st.markdown("---")
+            st.subheader("📝 分享您的相似决策经历")
+            
+            with st.form("custom_case_form"):
+                case_background = st.text_area(
+                    "💼 案例背景",
+                    placeholder="请描述决策的背景：时间、地点、涉及的人员或机构...",
+                    height=100
+                )
+                
+                decision_situation = st.text_area(
+                    "🎯 决策情况", 
+                    placeholder="您当时面临什么选择？有哪些关键信息影响了判断？",
+                    height=100
+                )
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    submitted = st.form_submit_button("🚀 开始个性化分析", type="primary")
+                with col2:
+                    cancelled = st.form_submit_button("📖 继续标准案例")
+                
+                if submitted and case_background and decision_situation:
+                    st.session_state.custom_case = {
+                        'background': case_background,
+                        'situation': decision_situation
+                    }
+                    st.success("✅ **案例已保存！** 后续分析将为您提供针对性洞察。")
+                    st.session_state.show_custom_form = False
+                    st.session_state.has_custom_case = True
+                    st.rerun()
+                elif submitted:
+                    st.error("⚠️ 请至少填写案例背景和决策情况")
+                elif cancelled:
+                    st.session_state.show_custom_form = False
+                    st.rerun()
     
     def _render_transition(self, component: Dict[str, Any]) -> None:
         """Render transition component"""
