@@ -1,551 +1,759 @@
 {
-  "$schema": "https://cognitive-blackbox.com/schemas/case-v1.0.json",
+  "$schema": "https://cognitive-blackbox.com/schemas/case/v1.0",
+  "comment": "麦道夫案例 - 基于S设计的v2.0 Schema实现",
+  
   "case_metadata": {
     "case_id": "madoff",
+    "version": "2.0.0",
     "title": "麦道夫案例：权威光环的致命吸引",
-    "target_bias": "光环效应",
+    "target_bias": {
+      "id": "halo_effect",
+      "name_cn": "光环效应",
+      "name_en": "The Halo Effect",
+      "description": "一个显著特征不合理地影响对其他无关特征的判断"
+    },
+    "target_user_profile": "高级决策者：CEO、投资委员会成员、风险管理负责人",
+    "difficulty_level": "introductory",
     "duration_minutes": 18,
-    "target_user": "高级决策者",
-    "difficulty_level": "advanced",
     "financial_impact": {
       "total_loss_usd": 65000000000,
       "victims_count": 37000,
       "geographic_scope": "global"
-    }
+    },
+    "created_by": "Hoshino (S)",
+    "technical_implementation": "Claude (C)",
+    "last_updated": "2025-01-14"
   },
-  "acts": {
-    "act1_host": {
-      "theme_color": "blue",
+
+  "acts": [
+    {
+      "act_id": 1,
+      "act_name": "Decision Context",
       "role": "host",
-      "title": "第一幕: 决策代入",
-      "progress": 25,
-      "opening_quote": "在商业世界中，我们最大的敌人不是竞争对手，而是我们自己的认知盲点。 —— 查理·芒格",
-      "knowledge_card": {
-        "title": "决策者的认知陷阱",
-        "content": [
-          "你在重大决策时是否曾经：",
-          "• 因为对方的权威身份就降低了警惕？",
-          "• 被完美的数据表现迷惑了双眼？", 
-          "• 因为\"专家都这么说\"就跟随了大流？",
-          "",
-          "⚠️ 认知偏误的代价：",
-          "对普通人是小损失，对决策者是灾难！"
-        ]
-      },
-      "opening_text": [
-        "你好，我知道你是一位在商业决策中身经百战的人。你可能管理着数千万的资金，掌控着数百人的命运，每个决策都可能影响公司的生死存亡。",
-        "",
-        "我也知道，你一定经历过一些...不如预期的结果。也许是一次投资失误，也许是一个人事决策，也许是一个战略方向。事后回想，你可能会说：'当时我怎么会那么想？'",
-        "",
-        "今天，我想和你分享一个650亿美元的教训。这不是一个遥远的故事，而是一面镜子。"
-      ],
-      "case_introduction": {
-        "year": "2008年12月",
-        "event": "华尔街爆出了一个震撼世界的消息",
-        "perpetrator": "前纳斯达克股票市场公司董事会主席",
-        "revelation": "被自己的儿子举报，涉嫌金融诈骗",
-        "victims": [
-          "史蒂文·斯皮尔伯格 - 好莱坞传奇导演",
-          "汇丰银行 - 世界最大银行之一", 
-          "瑞士银行 - 私人银行之王",
-          "诺贝尔奖得主伊利·维瑟尔 - 大屠杀幸存者，智慧的象征"
-        ]
-      },
-      "investment_opportunity": {
-        "title": "投资机会档案",
-        "context": "让我们回到2005年。假设你正在为公司寻找一个稳健的投资机会，需要配置3000万资金。这时，一位朋友向你推荐了一个'绝佳'的投资标的。",
-        "details": {
-          "fund_manager": "伯纳德·麦道夫，前纳斯达克股票市场公司董事会主席",
-          "historical_performance": "15年来年均回报11-12%，波动极小，几乎没有亏损年份",
-          "client_base": "欧洲皇室、好莱坞明星、华尔街银行、知名慈善基金会",
-          "investment_strategy": "复杂的分离式权证策略+期权套利，涉及核心机密",
-          "entry_threshold": "最低投资额100万美元，需要推荐人引荐"
+      "theme_color_hex": "#2A52BE",
+      "progress_percentage": 25,
+      "estimated_duration_minutes": 5,
+      "components": [
+        {
+          "component_type": "act_header",
+          "title": "第一幕：决策代入",
+          "subtitle": "在安全的沙箱中，重现真实的决策环境",
+          "opening_quote": "在商业世界中，我们最大的敌人不是竞争对手，而是我们自己的认知盲点。 —— 查理·芒格"
+        },
+        {
+          "component_type": "knowledge_card",
+          "title": "决策者的认知陷阱",
+          "content_items": [
+            "你在重大决策时是否曾经：",
+            "• 因为对方的权威身份就降低了警惕？",
+            "• 被完美的数据表现迷惑了双眼？",
+            "• 因为\"专家都这么说\"就跟随了大流？",
+            "",
+            "⚠️ 认知偏误的代价：",
+            "对普通人是小损失，对决策者是灾难！"
+          ],
+          "position": "sidebar"
+        },
+        {
+          "component_type": "dialogue",
+          "speaker": "host",
+          "content_md": "你好，我知道你是一位在商业决策中身经百战的人。你可能管理着数千万的资金，掌控着数百人的命运，每个决策都可能影响公司的生死存亡。\n\n我也知道，你一定经历过一些...不如预期的结果。也许是一次投资失误，也许是一个人事决策，也许是一个战略方向。事后回想，你可能会说：'当时我怎么会那么想？'\n\n今天，我想和你分享一个650亿美元的教训。这不是一个遥远的故事，而是一面镜子。"
+        },
+        {
+          "component_type": "case_introduction",
+          "title": "2008年12月，华尔街爆出震撼世界的消息",
+          "context": {
+            "time": "2008年12月11日",
+            "event": "前纳斯达克股票市场公司董事会主席被自己的儿子举报，涉嫌金融诈骗",
+            "victims_preview": [
+              "史蒂文·斯皮尔伯格 - 好莱坞传奇导演",
+              "汇丰银行 - 世界最大银行之一",
+              "瑞士银行 - 私人银行之王",
+              "诺贝尔奖得主伊利·维瑟尔 - 大屠杀幸存者，智慧的象征"
+            ]
+          }
+        },
+        {
+          "component_type": "investment_profile",
+          "title": "投资机会档案",
+          "context": "让我们回到2005年。假设你正在为公司寻找一个稳健的投资机会，需要配置3000万资金。这时，一位朋友向你推荐了一个'绝佳'的投资标的。",
+          "profile_items": {
+            "基金经理": "伯纳德·麦道夫，前纳斯达克股票市场公司董事会主席",
+            "历史业绩": "15年来年均回报11-12%，波动极小，几乎没有亏损年份",
+            "客户构成": "欧洲皇室、好莱坞明星、华尔街银行、知名慈善基金会",
+            "投资策略": "复杂的分离式权证策略+期权套利，涉及核心机密",
+            "准入门槛": "最低投资额100万美元，需要推荐人引荐"
+          }
+        },
+        {
+          "component_type": "decision_points",
+          "title": "你的专业判断是？",
+          "instruction": "请基于你的专业经验，对以下几个关键决策点进行分析。你的回答将被用于第二幕的个性化分析。",
+          "points": [
+            {
+              "point_id": "dp_authority",
+              "question": "看到\"前纳斯达克主席\"这个身份，你的风险评估是？",
+              "input_type": "textarea",
+              "placeholder": "纳斯达克主席代表着金融界的最高权威，这种级别的人物应该有严格的监管约束和声誉考量，风险相对可控。",
+              "typical_logic_preview": "纳斯达克主席 = 权威背书 = 低风险",
+              "host_comment": "这就是权威光环在起作用——我们会自动将管理能力等同于投资能力",
+              "user_answer_key": "decision_authority",
+              "editable": true
+            },
+            {
+              "point_id": "dp_performance", 
+              "question": "面对15年稳定11-12%的回报数据，你的专业判断是？",
+              "input_type": "textarea",
+              "placeholder": "在市场波动剧烈的环境中，能保持如此稳定的收益率，说明策略确实有独特之处，风险调整后的收益非常有吸引力。",
+              "typical_logic_preview": "稳定业绩 = 优秀策略 = 安全投资",
+              "host_comment": "过度的稳定性，有时候本身就是最大的异常信号",
+              "user_answer_key": "decision_performance",
+              "editable": true
+            },
+            {
+              "point_id": "dp_transparency",
+              "question": "对于\"投资策略涉及商业机密\"的说辞，你的态度是？",
+              "input_type": "textarea", 
+              "placeholder": "可以理解，任何成功的投资策略都需要保护其核心竞争力，否则一旦被复制就会失效。专业投资人都有这种保密需求。",
+              "typical_logic_preview": "保密策略 = 竞争优势 = 合理要求",
+              "host_comment": "我们是否过于轻易地接受了\"黑盒子\"操作？",
+              "user_answer_key": "decision_transparency",
+              "editable": true
+            },
+            {
+              "point_id": "dp_social_proof",
+              "question": "看到客户名单包括汇丰银行、瑞士银行等机构，这对你的决策权重如何？",
+              "input_type": "textarea",
+              "placeholder": "这些机构都有专业的尽职调查团队和风险控制体系，能通过他们的审核说明这个投资确实经得起专业scrutiny。",
+              "typical_logic_preview": "机构认可 = 专业验证 = 投资安全",
+              "host_comment": "如果所有人的判断都基于同一个信息源，集体智慧会变成什么？",
+              "user_answer_key": "decision_social_proof",
+              "editable": true
+            },
+            {
+              "point_id": "dp_risk_assessment",
+              "question": "从风险管理角度，你认为这个投资的主要风险在哪里？",
+              "input_type": "textarea",
+              "placeholder": "主要考虑市场系统性风险和策略失效风险，但考虑到操盘手的经验和历史业绩，这些风险应该在可控范围内。",
+              "typical_logic_preview": "历史业绩 = 风险可控 = 值得投资",
+              "host_comment": "我们考虑了策略风险，但考虑过人品风险吗？",
+              "user_answer_key": "decision_risk_assessment",
+              "editable": true
+            },
+            {
+              "point_id": "dp_final_decision",
+              "question": "基于以上分析，你的投资决策和资金配置方案是？",
+              "input_type": "select_with_custom",
+              "options": [
+                {"value": "full_investment", "label": "全力投入3000万", "risk_level": "high"},
+                {"value": "major_investment", "label": "投入2000万试水", "risk_level": "medium-high"},
+                {"value": "moderate_investment", "label": "投入1000万观察", "risk_level": "medium"},
+                {"value": "small_investment", "label": "投入500万试探", "risk_level": "low-medium"},
+                {"value": "decline_investment", "label": "暂不投资，继续观察", "risk_level": "low"},
+                {"value": "custom", "label": "其他方案（请详述）", "risk_level": "custom"}
+              ],
+              "custom_input_placeholder": "请详述你的投资方案和决策逻辑...",
+              "user_answer_key": "decision_final",
+              "editable": true
+            }
+          ]
+        },
+        {
+          "component_type": "authority_validation",
+          "title": "权威决策者对标",
+          "content_md": "感谢你的专业分析。你的决策逻辑很合理，风险控制意识也很强。\n\n事实上，全世界最顶级的机构投资者、家族办公室、慈善基金会的投委会，都做出了和你类似的判断。\n\n他们的决策团队包括：\n- **前高盛合伙人**\n- **沃顿商学院MBA**\n- **CFA持证人**\n- **有20年以上投资经验的专业人士**\n\n这些人管理着数十亿美元的资产，经历过无数次牛熊转换，见过各种骗局和陷阱。\n\n**但是，他们全军覆没。**"
+        },
+        {
+          "component_type": "custom_case_trigger",
+          "button_text": "🔄 用我自己的相似经历来分析",
+          "description": "如果你有过类似的决策经历，可以输入让AI为你分析",
+          "modal_config": {
+            "title": "分析你的决策案例",
+            "fields": [
+              {"id": "case_title", "label": "决策场景", "type": "text"},
+              {"id": "case_context", "label": "背景描述", "type": "textarea"},
+              {"id": "case_decision", "label": "你的决策", "type": "textarea"},
+              {"id": "case_outcome", "label": "最终结果", "type": "textarea"}
+            ]
+          }
+        },
+        {
+          "component_type": "transition",
+          "title": "现实即将击穿幻象",
+          "content_md": "2008年12月11日，这个投资帝国轰然倒塌。总损失：**650亿美元**。\n\n现在，让我请一位华尔街资深投资人来解释，这些最聪明的钱，是如何消失的...",
+          "transition_fx": {
+            "type": "fade_to_red",
+            "duration_ms": 2000,
+            "sound": "tension_build.mp3"
+          }
         }
-      },
-      "decision_points": [
-        {
-          "id": "dp1",
-          "question": "看到\"前纳斯达克主席\"这个身份，你的风险评估是？",
-          "typical_logic": "纳斯达克主席代表着金融界的最高权威，这种级别的人物应该有严格的监管约束和声誉考量，风险相对可控。",
-          "host_comment": "这就是权威光环在起作用——我们会自动将管理能力等同于投资能力",
-          "editable": true
-        },
-        {
-          "id": "dp2", 
-          "question": "面对15年稳定11-12%的回报数据，你的专业判断是？",
-          "typical_logic": "在市场波动剧烈的环境中，能保持如此稳定的收益率，说明策略确实有独特之处，风险调整后的收益非常有吸引力。",
-          "host_comment": "过度的稳定性，有时候本身就是最大的异常信号",
-          "editable": true
-        },
-        {
-          "id": "dp3",
-          "question": "对于\"投资策略涉及商业机密\"的说辞，你的态度是？", 
-          "typical_logic": "可以理解，任何成功的投资策略都需要保护其核心竞争力，否则一旦被复制就会失效。专业投资人都有这种保密需求。",
-          "host_comment": "我们是否过于轻易地接受了\"黑盒子\"操作？",
-          "editable": true
-        },
-        {
-          "id": "dp4",
-          "question": "看到客户名单包括汇丰银行、瑞士银行等机构，这对你的决策权重如何？",
-          "typical_logic": "这些机构都有专业的尽职调查团队和风险控制体系，能通过他们的审核说明这个投资确实经得起专业scrutiny。",
-          "host_comment": "如果所有人的判断都基于同一个信息源，集体智慧会变成什么？",
-          "editable": true
-        },
-        {
-          "id": "dp5", 
-          "question": "从风险管理角度，你认为这个投资的主要风险在哪里？",
-          "typical_logic": "主要考虑市场系统性风险和策略失效风险，但考虑到操盘手的经验和历史业绩，这些风险应该在可控范围内。",
-          "host_comment": "我们考虑了策略风险，但考虑过人品风险吗？",
-          "editable": true
-        },
-        {
-          "id": "dp6",
-          "question": "基于以上分析，你的投资决策和资金配置方案是？",
-          "typical_logic": "建议先投入1000万进行试水，如果表现符合预期，可以考虑增加到3000万的上限，作为稳健资产配置的一部分。",
-          "host_comment": "",
-          "editable": true
-        }
-      ],
-      "authority_validation": {
-        "title": "权威决策者对标",
-        "content": [
-          "感谢你的专业分析。你的决策逻辑很合理，风险控制意识也很强。",
-          "",
-          "事实上，全世界最顶级的机构投资者、家族办公室、慈善基金会的投委会，都做出了和你类似的判断。",
-          "",
-          "他们的决策团队包括：",
-          "- **前高盛合伙人**",
-          "- **沃顿商学院MBA**", 
-          "- **CFA持证人**",
-          "- **有20年以上投资经验的专业人士**",
-          "",
-          "这些人管理着数十亿美元的资产，经历过无数次牛熊转换，见过各种骗局和陷阱。",
-          "",
-          "**但是，他们全军覆没。**"
-        ]
-      },
-      "transition_to_act2": {
-        "revelation": "2008年12月11日，这个投资帝国轰然倒塌。总损失：**650亿美元**。",
-        "teaser": "现在，让我请一位华尔街资深投资人来解释，这些最聪明的钱，是如何消失的..."
-      }
+      ]
     },
-    "act2_investor": {
-      "theme_color": "red",
-      "role": "investor", 
-      "title": "第二幕: 现实击穿",
-      "progress": 50,
-      "opening_quote": "最危险的不是无知，而是错误的确定性。我们总是过于相信自己看到的趋势。 —— 约翰·肯尼思·加尔布雷思",
-      "knowledge_card": {
-        "title": "确认偏误的危险特征",
-        "content": [
-          "✗ 选择性注意：只看支持观点的信息",
-          "✗ 解释偏误：把相反证据解释成支持证据", 
-          "✗ 记忆偏误：更容易记住支持的例子",
-          "✗ 专家盲点：越专业越容易忽视反面信息",
-          "✗ 群体强化：同行都这么想，一定没错",
-          "",
-          "⚠️ 记住：经验可能是最大的敌人！"
-        ]
+    {
+      "act_id": 2,
+      "act_name": "Reality Check",
+      "role": "investor",
+      "theme_color_hex": "#D93025",
+      "progress_percentage": 50,
+      "estimated_duration_minutes": 6,
+      "transition_fx": {
+        "type": "shock",
+        "sound": "heartbeat.mp3",
+        "visual": "red_flash"
       },
-      "opening_revelation": {
-        "title": "残酷现实揭示",
-        "content": [
-          "刚才听了你的分析，让我告诉你一个残酷的现实。这个'伯纳德·麦道夫'，就是美国历史上最大的金融诈骗犯。",
-          "",
-          "**650亿美元**！这是受害者的总损失。",
-          "**3.7万人被骗**，遍及136个国家。"
-        ]
-      },
-      "victim_showcase": {
-        "notable_victims": [
-          "史蒂文·斯皮尔伯格 - 好莱坞传奇导演",
-          "凯文·培根 - 著名演员", 
-          "汇丰银行 - 世界最大银行之一",
-          "瑞士银行 - 私人银行之王",
-          "皇家苏格兰银行 - 欧洲银行巨头"
-        ],
-        "challenge_question": "这些人比你聪明吗？比你谨慎吗？比你有资源做尽职调查吗？"
-      },
-      "four_challenges": {
-        "challenge1": {
-          "title": "职能边界混淆",
-          "content": [
-            "你刚才说'前纳斯达克主席值得信任'。让我问你一个专业问题：**市场监管者 = 资产管理专家吗？**",
+      "components": [
+        {
+          "component_type": "act_header",
+          "title": "第二幕：现实击穿",
+          "subtitle": "用犀利质疑和残酷数据击碎认知假设",
+          "opening_quote": "最危险的不是无知，而是错误的确定性。我们总是过于相信自己看到的趋势。 —— 约翰·肯尼思·加尔布雷思"
+        },
+        {
+          "component_type": "knowledge_card",
+          "title": "确认偏误的危险特征",
+          "content_items": [
+            "✗ 选择性注意：只看支持观点的信息",
+            "✗ 解释偏误：把相反证据解释成支持证据",
+            "✗ 记忆偏误：更容易记住支持的例子",
+            "✗ 专家盲点：越专业越容易忽视反面信息",
+            "✗ 群体强化：同行都这么想，一定没错",
             "",
-            "纳斯达克主席的核心职责是什么？制定交易规则、监督市场秩序、确保信息披露。这和选股、择时、风险控制有什么关系？",
-            "",
-            "这就像说'银监会主席一定是最好的银行家'，'证监会主席一定是最好的基金经理'一样荒谬。",
-            "",
-            "**你为什么把监管能力，等同于投资能力？这是什么级别的逻辑错误？**"
+            "⚠️ 记住：经验可能是最大的敌人！"
+          ],
+          "position": "sidebar"
+        },
+        {
+          "component_type": "reality_shock",
+          "title": "残酷现实揭示",
+          "content_md": "刚才听了你的分析，让我告诉你一个残酷的现实。这个'伯纳德·麦道夫'，就是美国历史上最大的金融诈骗犯。\n\n**650亿美元**！这是受害者的总损失。\n**3.7万人被骗**，遍及136个国家。"
+        },
+        {
+          "component_type": "shock_metrics",
+          "title": "损失数据展示",
+          "metrics": [
+            {"label": "总损失", "value": "$650亿", "delta": "-100%", "color": "red"},
+            {"label": "受害者", "value": "37,000+", "delta": "遍及136国", "color": "red"}, 
+            {"label": "诈骗时长", "value": "20年+", "delta": "\"完美\"记录", "color": "red"},
+            {"label": "追回率", "value": "~70%", "delta": "部分资金", "color": "yellow"}
+          ],
+          "animation": {
+            "type": "counter_up",
+            "duration_ms": 3000,
+            "sound": "impact.mp3"
+          }
+        },
+        {
+          "component_type": "victim_showcase",
+          "title": "受害者名单",
+          "description": "这些人比你聪明吗？比你谨慎吗？比你有资源做尽职调查吗？",
+          "victims": [
+            {"name": "史蒂文·斯皮尔伯格", "description": "好莱坞传奇导演", "loss_estimated": "数百万美元"},
+            {"name": "凯文·培根", "description": "著名演员", "loss_estimated": "大部分积蓄"},
+            {"name": "汇丰银行", "description": "世界最大银行之一", "loss_estimated": "10亿美元+"},
+            {"name": "瑞士银行", "description": "私人银行之王", "loss_estimated": "数十亿美元"},
+            {"name": "皇家苏格兰银行", "description": "欧洲银行巨头", "loss_estimated": "数亿美元"}
           ]
         },
-        "challenge2": {
-          "title": "信息不对称的陷阱", 
-          "content": [
-            "你接受了'投资策略商业机密'的说辞。作为一个管理资金的专业人士，这合理吗？",
-            "",
-            "真正的投资大师怎么做？巴菲特每年写股东信详细解释投资逻辑；达利欧把《原则》写成书公开分享；西蒙斯虽然不透露具体算法，但量化策略的基本原理是公开的。",
-            "",
-            "**什么样的'策略'需要完全黑盒操作？什么样的基金经理拒绝任何外部审计？**",
-            "",
-            "麦道夫连最基本的托管分离都拒绝！**这是策略保密还是欺诈隐瞒？**"
+        {
+          "component_type": "ai_challenge",
+          "title": "现在，让我用投资人的视角，问你四个专业问题：",
+          "ai_config": {
+            "engine": "gemini_2.0_flash",
+            "prompt_template_id": "investor_personalized_challenge_v1",
+            "input_context_keys": [
+              "decision_authority",
+              "decision_performance", 
+              "decision_transparency",
+              "decision_social_proof",
+              "decision_risk_assessment",
+              "decision_final"
+            ],
+            "personalization_rules": [
+              {
+                "condition": "decision_final == 'full_investment'",
+                "emphasis": "aggressive_risk_challenge",
+                "tone": "严厉质疑风险控制意识"
+              },
+              {
+                "condition": "decision_final == 'decline_investment'",
+                "emphasis": "wisdom_validation",
+                "tone": "验证拒绝的真正原因"
+              },
+              {
+                "condition": "decision_authority contains '权威'",
+                "emphasis": "authority_bias_focus",
+                "tone": "重点攻击权威偏误"
+              }
+            ],
+            "fallback_response_id": "investor_static_challenge_set",
+            "timeout_seconds": 3,
+            "max_retries": 2
+          }
+        },
+        {
+          "component_type": "static_challenge_set",
+          "id": "investor_static_challenge_set",
+          "title": "四重专业质疑",
+          "description": "当AI生成失败时使用的高质量静态内容",
+          "challenges": [
+            {
+              "challenge_id": "authority_confusion",
+              "title": "职能边界混淆",
+              "content_md": "你刚才说'前纳斯达克主席值得信任'。让我问你一个专业问题：**市场监管者 = 资产管理专家吗？**\n\n纳斯达克主席的核心职责是什么？制定交易规则、监督市场秩序、确保信息披露。这和选股、择时、风险控制有什么关系？\n\n这就像说'银监会主席一定是最好的银行家'，'证监会主席一定是最好的基金经理'一样荒谬。\n\n**你为什么把监管能力，等同于投资能力？这是什么级别的逻辑错误？**"
+            },
+            {
+              "challenge_id": "information_asymmetry",
+              "title": "信息不对称的陷阱",
+              "content_md": "你接受了'投资策略商业机密'的说辞。作为一个管理资金的专业人士，这合理吗？\n\n真正的投资大师怎么做？巴菲特每年写股东信详细解释投资逻辑；达利欧把《原则》写成书公开分享；西蒙斯虽然不透露具体算法，但量化策略的基本原理是公开的。\n\n**什么样的'策略'需要完全黑盒操作？什么样的基金经理拒绝任何外部审计？**\n\n麦道夫连最基本的托管分离都拒绝！**这是策略保密还是欺诈隐瞒？**"
+            },
+            {
+              "challenge_id": "statistical_anomaly",
+              "title": "统计异常的忽视",
+              "content_md": "15年年均11-12%，波动极小。作为专业投资人，你不觉得这在统计学上是不可能的吗？\n\n巴菲特50年平均收益20%，但1974年亏损48%，2008年亏损32%。市场有周期，有黑天鹅，这是金融常识。\n\n**什么样的策略能完全规避系统性风险？什么样的投资组合能15年如一日的稳定？**\n\n答案只有一个：**用新投资者的钱支付老投资者的收益！** 这就是庞氏骗局的数学特征。\n\n**你为什么忽视了这个最明显的红旗？**"
+            },
+            {
+              "challenge_id": "independent_verification",
+              "title": "独立尽调的缺失",
+              "content_md": "你说'汇丰银行、瑞士银行都投资了，应该安全'。\n\n请问，汇丰的投委会亲自去麦道夫的办公室查看了交易记录吗？瑞士银行的风控团队验证过他声称的期权持仓吗？\n\n答案是没有。他们都是通过feeder fund（导管基金）投资的，都是看了同一份业绩报告，都是被同一个'前纳斯达克主席'的光环忽悠。\n\n**如果所有人的判断都基于同一个虚假信息，那么人数越多，错误越大！**\n\n**这不是集体智慧，这是集体愚蠢！**"
+            }
           ]
         },
-        "challenge3": {
-          "title": "统计异常的忽视",
-          "content": [
-            "15年年均11-12%，波动极小。作为专业投资人，你不觉得这在统计学上是不可能的吗？",
-            "",
-            "巴菲特50年平均收益20%，但1974年亏损48%，2008年亏损32%。市场有周期，有黑天鹅，这是金融常识。",
-            "",
-            "**什么样的策略能完全规避系统性风险？什么样的投资组合能15年如一日的稳定？**",
-            "",
-            "答案只有一个：**用新投资者的钱支付老投资者的收益！** 这就是庞氏骗局的数学特征。",
-            "",
-            "**你为什么忽视了这个最明显的红旗？**"
-          ]
+        {
+          "component_type": "ultimate_impact",
+          "title": "终极现实击穿",
+          "content_md": "有一个房地产大亨叫Norman Levy，93岁临终前还对家人说：'假如世界上只有一位诚实的人，那就是伯尼。'\n\n**结果呢？他的投资全部化为乌有。**\n\n现在我问你：**连这些世界级的聪明人都被骗了，你凭什么认为自己不会犯同样的错误？**"
         },
-        "challenge4": {
-          "title": "独立尽调的缺失",
-          "content": [
-            "你说'汇丰银行、瑞士银行都投资了，应该安全'。",
-            "",
-            "请问，汇丰的投委会亲自去麦道夫的办公室查看了交易记录吗？瑞士银行的风控团队验证过他声称的期权持仓吗？",
-            "",
-            "答案是没有。他们都是通过feeder fund（导管基金）投资的，都是看了同一份业绩报告，都是被同一个'前纳斯达克主席'的光环忽悠。",
-            "",
-            "**如果所有人的判断都基于同一个虚假信息，那么人数越多，错误越大！**",
-            "",
-            "**这不是集体智慧，这是集体愚蠢！**"
-          ]
+        {
+          "component_type": "transition",
+          "title": "从震撼到洞察",
+          "content_md": "感受到冲击了吗？这正是我们想要的效果。\n\n但震撼本身不是目的。真正的价值在于：将这种冲击转化为深刻的认知升级。\n\n现在，让我请一位认知科学导师，为你解释这一切背后的科学原理...",
+          "transition_fx": {
+            "type": "fade_to_green",
+            "duration_ms": 1500
+          }
         }
-      },
-      "ultimate_impact": {
-        "title": "终极现实击穿", 
-        "content": [
-          "有一个房地产大亨叫Norman Levy，93岁临终前还对家人说：'假如世界上只有一位诚实的人，那就是伯尼。'",
-          "",
-          "**结果呢？他的投资全部化为乌有。**",
-          "",
-          "现在我问你：**连这些世界级的聪明人都被骗了，你凭什么认为自己不会犯同样的错误？**"
-        ]
-      },
-      "data_metrics": {
-        "total_loss": "$650亿",
-        "loss_percentage": "-100%",
-        "victims": "37,000+",
-        "countries": "136国",
-        "fraud_duration": "20年+",
-        "track_record": "\"完美\"记录"
-      },
-      "ai_generation": {
-        "enabled": true,
-        "input_context": ["user_decisions", "case_metadata", "personalization_data"],
-        "fallback_content": "现在，让我用投资人的视角，问你四个专业问题...",
-        "personalization_template": "我注意到你刚才选择了【{user_decision}】，{personalized_challenge}",
-        "quality_checks": ["专业术语使用", "逻辑一致性", "情感冲击力"]
-      }
+      ]
     },
-    "act3_mentor": {
-      "theme_color": "green",
+    {
+      "act_id": 3,
+      "act_name": "Framework Building",
       "role": "mentor",
-      "title": "第三幕: 框架重构", 
-      "progress": 75,
-      "opening_quote": "真正的智慧不是知道所有答案，而是知道正确的问题。 —— 克劳德·列维-斯特劳斯",
-      "knowledge_card": {
-        "title": "决策者必须警惕的认知陷阱",
-        "content": [
-          "• 光环效应：一个优点掩盖所有风险",
-          "• 权威偏误：专家在错误领域的话语权", 
-          "• 复杂性逃避：不懂就选择盲目信任",
-          "• 确认偏误：只看支持判断的信息",
-          "• 群体从众：集体判断的危险假象",
-          "",
-          "💡 高级认知原则：",
-          "系统性思维 > 直觉性判断"
-        ]
-      },
-      "theoretical_foundation": {
-        "title": "光环效应的科学解构",
-        "discovery": {
-          "researcher": "爱德华·桑代克",
-          "year": "1920年",
-          "context": "哈佛心理学家在军队研究中发现",
-          "original_quote": "我发现军官们评估士兵时存在一个系统性偏误。当他们认为一个士兵\"体格\"出众时，这个士兵在\"智力\"、\"领导力\"、\"品格\"等完全不相关的维度上也会获得高分。一个突出特质就像光环一样，照亮了其他所有特质的评价。"
+      "theme_color_hex": "#059669",
+      "progress_percentage": 75,
+      "estimated_duration_minutes": 4,
+      "components": [
+        {
+          "component_type": "act_header",
+          "title": "第三幕：框架重构",
+          "subtitle": "将震撼转化为系统性认知升级",
+          "opening_quote": "真正的智慧不是知道所有答案，而是知道正确的问题。 —— 克劳德·列维-斯特劳斯"
         },
-        "definition": "我们的大脑会让一个显著特征，不合理地影响对其他无关特征的判断。"
-      },
-      "cognitive_deconstruction": {
-        "title": "麦道夫案例的认知解构",
-        "halo_types": [
-          "能力光环：监管职位→投资天赋",
-          "道德光环：公众形象→个人品格", 
-          "专业光环：金融背景→策略可信",
-          "成功光环：历史业绩→未来保障"
-        ],
-        "amplification_chain": [
-          "麦道夫的权威身份 → 第一批投资者信任",
-          "成功案例传播 → 更多投资者跟随",
-          "社会证明效应 → 集体认知扭曲", 
-          "系统性风险积累 → 最终崩盘"
-        ]
-      },
-      "framework_solution": {
-        "title": "四维独立验证矩阵",
-        "description": "要打破这种系统性认知偏误，你需要一个**强制性的认知隔离系统**",
-        "dimensions": [
-          {
-            "id": "dimension1",
-            "title": "身份验证：区分职位权威vs专业权威", 
-            "description": "职能匹配度分析",
-            "example": "监管者≠投资专家"
-          },
-          {
-            "id": "dimension2", 
-            "title": "能力验证：要求可审计的业绩证明",
-            "description": "实际业绩审计",
-            "example": "第三方验证历史表现"
-          },
-          {
-            "id": "dimension3",
-            "title": "信息验证：拒绝任何不透明的信息",
-            "description": "信息透明度检查", 
-            "example": "拒绝黑盒子操作"
-          },
-          {
-            "id": "dimension4",
-            "title": "独立验证：获取真正独立的第三方意见",
-            "description": "第三方独立意见",
-            "example": "魔鬼代言人制度"
-          }
-        ]
-      },
-      "decision_comparison": {
-        "title": "麦道夫受害者 vs 专业验证路径对比",
-        "comparison_table": [
-          {
-            "dimension": "身份处理",
-            "victim_path": "看职位光环→直接信任", 
-            "safe_path": "分析职能匹配度→谨慎评估"
-          },
-          {
-            "dimension": "业绩处理",
-            "victim_path": "接受自我报告数据",
-            "safe_path": "要求第三方审计证明"
-          },
-          {
-            "dimension": "策略处理", 
-            "victim_path": "接受\"黑盒\"操作",
-            "safe_path": "要求合理的透明度"
-          },
-          {
-            "dimension": "尽调深度",
-            "victim_path": "依赖其他人的判断", 
-            "safe_path": "进行独立的实地调查"
-          },
-          {
-            "dimension": "风险控制",
-            "victim_path": "基于历史业绩预测",
-            "safe_path": "基于最坏情况规划"
-          },
-          {
-            "dimension": "资金配置",
-            "victim_path": "大额一次性投入",
-            "safe_path": "小额试水+逐步验证"
-          },
-          {
-            "dimension": "预期损失", 
-            "victim_path": "100%本金损失",
-            "safe_path": "最多试水资金损失"
-          }
-        ]
-      },
-      "historical_parallel": {
-        "title": "历史上的光环效应案例",
-        "examples": [
-          "2008年金融危机：人们被AAA评级的光环迷惑",
-          "1990年代日本房地产泡沫：被'土地永远升值'的神话迷惑",
-          "2000年互联网泡沫：被'新经济'概念的光环迷惑"
-        ],
-        "conclusion": "每一次，受害者都是当时最聪明的人。"
-      }
-    },
-    "act4_assistant": {
-      "theme_color": "cyan",
-      "role": "assistant",
-      "title": "第四幕: 能力武装",
-      "progress": 100,
-      "opening_quote": "知识不是力量，运用知识才是力量。 —— 弗朗西斯·培根",
-      "knowledge_card": {
-        "title": "高级决策者的杠铃策略",
-        "content": [
-          "• 战略投资：90%可验证、可控制的机会",
-          "• 机会投资：10%高风险、高回报的尝试",
-          "• 团队建设：90%能力验证+10%潜力开发", 
-          "• 业务拓展：90%核心业务+10%创新试验",
-          "• 知识获取：90%已验证理论+10%前沿探索",
-          "",
-          "🎯 决策者守则：",
-          "永远不要把核心资源压在无法验证的机会上！"
-        ]
-      },
-      "capability_test": {
-        "title": "专业认知能力测试", 
-        "scenario": {
-          "context": "某知名商学院教授向您推荐一个'独家'的PE投资机会",
-          "details": [
-            "背景：哈佛商学院终身教授，写过畅销商业书籍",
-            "项目：基于AI算法的新零售项目，声称颠覆性技术",
-            "条件：核心算法涉及专利保护，细节不便透露", 
-            "业绩：过去两年在类似项目上获得300%回报",
-            "要求：需要3000万资金，6个月锁定期"
+        {
+          "component_type": "knowledge_card",
+          "title": "决策者必须警惕的认知陷阱",
+          "content_items": [
+            "• 光环效应：一个优点掩盖所有风险",
+            "• 权威偏误：专家在错误领域的话语权",
+            "• 复杂性逃避：不懂就选择盲目信任",
+            "• 确认偏误：只看支持判断的信息", 
+            "• 群体从众：集体判断的危险假象",
+            "",
+            "💡 高级认知原则：",
+            "系统性思维 > 直觉性判断"
           ],
-          "question": "运用刚学到的'四维独立验证矩阵'，您的分析和决策是？"
+          "position": "sidebar"
         },
-        "feedback_template": "出色的分析！您特别提到了{user_insight}，这体现了高级决策者应有的认知警觉性。您已经学会了区分'学术权威'和'投资能力'，并且意识到过度保密往往是危险信号。这说明您的认知防护系统正在有效运转。"
-      },
-      "barbell_strategy": {
-        "title": "决策者的杠铃策略",
-        "philosophy": "我们的目标不是让您变成过度保守的决策者，而是让您成为更理性的风险管理者。",
-        "risk_categorization": {
-          "acceptable_risk": {
-            "definition": "即使全部损失，也不会伤及企业根本",
-            "approach": "这种风险可以适当放大，追求高回报"
+        {
+          "component_type": "theoretical_foundation",
+          "title": "光环效应的科学解构",
+          "discovery": {
+            "researcher": "爱德华·桑代克",
+            "year": "1920年",
+            "context": "哈佛心理学家在军队研究中发现",
+            "original_quote": "我发现军官们评估士兵时存在一个系统性偏误。当他们认为一个士兵\"体格\"出众时，这个士兵在\"智力\"、\"领导力\"、\"品格\"等完全不相关的维度上也会获得高分。一个突出特质就像光环一样，照亮了其他所有特质的评价。"
           },
-          "unacceptable_risk": {
-            "definition": "一旦损失，可能导致企业倒闭或重创", 
-            "approach": "这种风险必须严格控制，无论回报多高"
-          }
+          "definition": "我们的大脑会让一个显著特征，不合理地影响对其他无关特征的判断。"
         },
-        "allocation_strategy": {
-          "core_resources": "90%：投入到确定性高、风险可控的业务",
-          "exploration_resources": "10%：投入到不确定性高、潜力巨大的机会",
-          "key_principle": "10%部分的全部损失，不能影响90%部分的安全"
-        },
-        "madoff_lesson": "LTCM的致命错误：把不可承受的风险当成了可承受的风险。"
-      },
-      "personalized_system": {
-        "title": "个性化认知风险管理系统",
-        "tool_name_prompt": "现在，让我们为您定制一套专属的'过度自信免疫系统'。请为这个系统起一个符合您决策风格的名称：",
-        "principle_prompt": "很好的命名！现在请总结一句您在重大决策时的核心原则：",
-        "system_template": {
-          "title": "🛡️ {user_system_name}",
-          "core_principle": "💡 核心决策原则：{user_principle}",
-          "framework": [
-            "🧠 四维独立验证矩阵：",
-            "1️⃣ 身份验证：区分职位权威 vs 专业权威", 
-            "2️⃣ 能力验证：要求第三方审计的业绩证明",
-            "3️⃣ 信息验证：拒绝任何不合理的信息黑盒",
-            "4️⃣ 独立验证：获取真正独立的专业意见"
+        {
+          "component_type": "cognitive_deconstruction",
+          "title": "麦道夫案例的认知解构",
+          "halo_types": [
+            "能力光环：监管职位→投资天赋",
+            "道德光环：公众形象→个人品格",
+            "专业光环：金融背景→策略可信",
+            "成功光环：历史业绩→未来保障"
           ],
-          "barbell_strategy": [
-            "⚖️ 杠铃风险管理策略：",
-            "• 90%资源：完全可验证、可控制的核心机会",
-            "• 10%资源：高风险高回报的探索性尝试",
-            "• 核心认知：明确区分\"理性决策\"与\"风险博弈\"",
-            "• 麦道夫教训：永远不要把核心资源押在无法验证的机会上"
-          ],
-          "warning_signals": [
-            "⚠️ 高危信号预警系统：", 
-            "• \"这涉及商业机密，无法透露细节\"",
-            "• 过于完美的历史业绩表现",
-            "• 拒绝第三方审计或托管分离",
-            "• 基于权威身份的信任请求",
-            "• \"所有聪明人都在参与\"的群体暗示"
-          ],
-          "cognitive_upgrade": [
-            "🎯 高级决策者认知升级：",
-            "• 权威光环 ≠ 专业能力（区分职能边界）",
-            "• 异常稳定 = 最大风险信号（统计常识）", 
-            "• 信息透明 = 可信度基础（尽调原则）",
-            "• 独立验证 > 集体共识（避免群体盲从）",
-            "• 系统思维 > 直觉判断（认知升级）"
+          "amplification_chain": [
+            "麦道夫的权威身份 → 第一批投资者信任",
+            "成功案例传播 → 更多投资者跟随",
+            "社会证明效应 → 集体认知扭曲",
+            "系统性风险积累 → 最终崩盘"
           ]
-        }
-      },
-      "application_extension": {
-        "title": "认知工具的延伸应用",
-        "areas": [
-          "高管招聘：90%选择能力可验证的候选人，10%给有特殊潜力但背景复杂的人机会",
-          "战略合作：90%选择实力可查证的伙伴，10%探索有创新价值的新兴伙伴",
-          "业务拓展：90%投入已验证的盈利模式，10%试验具有颠覆潜力的新方向",
-          "技术投资：90%采用成熟可靠的解决方案，10%探索前沿但不确定的技术"
-        ],
-        "core_principle": "在追求增长的同时，保持生存韧性。"
-      },
-      "sharing_strategies": {
-        "title": "传播策略与思想领袖对话",
-        "opening_approaches": [
-          {
-            "type": "数据震撼",
-            "content": "你知道650亿美元是怎么消失的吗？受害者包括汇丰银行、瑞士银行的投委会，这些人的专业程度不比我们差..."
-          },
-          {
-            "type": "认知测试", 
-            "content": "如果前央行行长推荐给你一个投资机会，你的第一反应是什么？信任还是质疑？让我告诉你一个真实的案例..."
-          },
-          {
-            "type": "同理心切入",
-            "content": "我们都有过因为相信权威而做错决策的经历。但有一个案例，连诺贝尔奖得主都中招了..."
+        },
+        {
+          "component_type": "framework_solution",
+          "title": "四维独立验证矩阵",
+          "description": "要打破这种系统性认知偏误，你需要一个**强制性的认知隔离系统**",
+          "dimensions": [
+            {
+              "dimension_id": "identity_verification",
+              "title": "身份验证：区分职位权威vs专业权威",
+              "description": "职能匹配度分析",
+              "example": "监管者≠投资专家",
+              "implementation": "分析权威身份与具体能力的匹配度"
+            },
+            {
+              "dimension_id": "capability_verification", 
+              "title": "能力验证：要求可审计的业绩证明",
+              "description": "实际业绩审计",
+              "example": "第三方验证历史表现",
+              "implementation": "获取第三方验证的历史表现数据"
+            },
+            {
+              "dimension_id": "information_verification",
+              "title": "信息验证：拒绝任何不透明的信息",
+              "description": "信息透明度检查",
+              "example": "拒绝黑盒子操作",
+              "implementation": "要求合理的策略透明度和信息披露"
+            },
+            {
+              "dimension_id": "independent_verification",
+              "title": "独立验证：获取真正独立的第三方意见",
+              "description": "第三方独立意见",
+              "example": "魔鬼代言人制度",
+              "implementation": "建立魔鬼代言人制度，主动寻找反对意见"
+            }
+          ]
+        },
+        {
+          "component_type": "comparison_table",
+          "title": "麦道夫受害者 vs 专业验证路径对比",
+          "comparison_items": [
+            {
+              "dimension": "身份处理",
+              "victim_path": "看职位光环→直接信任",
+              "safe_path": "分析职能匹配度→谨慎评估"
+            },
+            {
+              "dimension": "业绩处理",
+              "victim_path": "接受自我报告数据",
+              "safe_path": "要求第三方审计证明"
+            },
+            {
+              "dimension": "策略处理",
+              "victim_path": "接受\"黑盒\"操作",
+              "safe_path": "要求合理的透明度"
+            },
+            {
+              "dimension": "尽调深度",
+              "victim_path": "依赖其他人的判断",
+              "safe_path": "进行独立的实地调查"
+            },
+            {
+              "dimension": "风险控制",
+              "victim_path": "基于历史业绩预测",
+              "safe_path": "基于最坏情况规划"
+            },
+            {
+              "dimension": "资金配置",
+              "victim_path": "大额一次性投入",
+              "safe_path": "小额试水+逐步验证"
+            },
+            {
+              "dimension": "预期损失",
+              "victim_path": "100%本金损失",
+              "safe_path": "最多试水资金损失"
+            }
+          ]
+        },
+        {
+          "component_type": "historical_parallel",
+          "title": "历史上的光环效应案例",
+          "examples": [
+            "2008年金融危机：人们被AAA评级的光环迷惑",
+            "1990年代日本房地产泡沫：被'土地永远升值'的神话迷惑", 
+            "2000年互联网泡沫：被'新经济'概念的光环迷惑"
+          ],
+          "conclusion": "每一次，受害者都是当时最聪明的人。"
+        },
+        {
+          "component_type": "transition",
+          "title": "从认知到工具",
+          "content_md": "现在你已经理解了认知陷阱的科学原理，也掌握了防范框架。\n\n但理论的价值在于应用。让我请一位专业助理，帮你将这些洞察转化为可以立即使用的实用工具...",
+          "transition_fx": {
+            "type": "fade_to_cyan",
+            "duration_ms": 1500
           }
-        ],
-        "key_principle": "关键是让听众先产生代入感，再给出震撼信息，最后提供解决方案。"
-      },
-      "thought_leader_connection": {
-        "title": "与思想领袖的连接",
-        "connections": [
-          "霍华德·马克斯在《投资最重要的事》中深度分析了光环效应的投资风险",
-          "丹尼尔·卡尼曼在《思考，快与慢》中用麦道夫案例解释系统性认知偏误",
-          "查理·芒格多次强调独立思考和避免权威偏误的重要性"
-        ],
-        "conclusion": "您今天获得的认知升级，正是这些思想领袖智慧的精华提炼。"
-      },
-      "final_wisdom": "记住：**权威越强，越要验证；机会越好，越要谨慎**。您今天获得的，是一套在高风险决策中保持理性的专业系统。"
-    }
-  },
-  "magic_moments": [
-    {
-      "name": "reality_disruption",
-      "trigger_step": 2,
-      "description": "从第一幕切换到第二幕时的认知冲击",
-      "effect_config": {
-        "audio_cue": "warning_tone",
-        "visual_effect": "color_flash_red", 
-        "duration_seconds": 3.0,
-        "text_effect": "bold_large"
-      }
+        }
+      ]
     },
     {
-      "name": "data_reveal",
-      "trigger_step": 2,
-      "description": "650亿美元损失数据展示",
-      "effect_config": {
-        "visual_effect": "counter_animation",
-        "duration_seconds": 2.0,
-        "text_effect": "highlight_numbers"
-      }
-    },
-    {
-      "name": "framework_click", 
-      "trigger_step": 3,
-      "description": "四维验证框架理解时刻",
-      "effect_config": {
-        "visual_effect": "gentle_glow",
-        "duration_seconds": 1.5,
-        "text_effect": "emphasis_fade_in"
-      }
-    },
-    {
-      "name": "tool_generation",
-      "trigger_step": 4, 
-      "description": "个性化工具生成时刻",
-      "effect_config": {
-        "visual_effect": "creation_animation",
-        "duration_seconds": 4.0,
-        "text_effect": "typewriter_effect"
-      }
+      "act_id": 4,
+      "act_name": "Tool Generation",
+      "role": "assistant",
+      "theme_color_hex": "#0891B2",
+      "progress_percentage": 100,
+      "estimated_duration_minutes": 3,
+      "components": [
+        {
+          "component_type": "act_header",
+          "title": "第四幕：能力武装",
+          "subtitle": "将认知洞察转化为实用决策工具",
+          "opening_quote": "知识不是力量，运用知识才是力量。 —— 弗朗西斯·培根"
+        },
+        {
+          "component_type": "knowledge_card",
+          "title": "高级决策者的杠铃策略",
+          "content_items": [
+            "• 战略投资：90%可验证、可控制的机会",
+            "• 机会投资：10%高风险、高回报的尝试",
+            "• 团队建设：90%能力验证+10%潜力开发",
+            "• 业务拓展：90%核心业务+10%创新试验",
+            "• 知识获取：90%已验证理论+10%前沿探索",
+            "",
+            "🎯 决策者守则：",
+            "永远不要把核心资源压在无法验证的机会上！"
+          ],
+          "position": "sidebar"
+        },
+        {
+          "component_type": "capability_test",
+          "title": "专业认知能力测试",
+          "scenario": {
+            "context": "某知名商学院教授向您推荐一个'独家'的PE投资机会",
+            "details": [
+              "背景：哈佛商学院终身教授，写过畅销商业书籍",
+              "项目：基于AI算法的新零售项目，声称颠覆性技术",
+              "条件：核心算法涉及专利保护，细节不便透露",
+              "业绩：过去两年在类似项目上获得300%回报",
+              "要求：需要3000万资金，6个月锁定期"
+            ],
+            "question": "运用刚学到的'四维独立验证矩阵'，您的分析和决策是？"
+          },
+          "input_type": "textarea",
+          "feedback_template": "出色的分析！您特别提到了{user_insight}，这体现了高级决策者应有的认知警觉性。您已经学会了区分'学术权威'和'投资能力'，并且意识到过度保密往往是危险信号。这说明您的认知防护系统正在有效运转。"
+        },
+        {
+          "component_type": "barbell_strategy",
+          "title": "决策者的杠铃策略",
+          "philosophy": "我们的目标不是让您变成过度保守的决策者，而是让您成为更理性的风险管理者。",
+          "risk_categorization": {
+            "acceptable_risk": {
+              "definition": "即使全部损失，也不会伤及企业根本",
+              "approach": "这种风险可以适当放大，追求高回报"
+            },
+            "unacceptable_risk": {
+              "definition": "一旦损失，可能导致企业倒闭或重创",
+              "approach": "这种风险必须严格控制，无论回报多高"
+            }
+          },
+          "allocation_strategy": {
+            "core_resources": "90%：投入到确定性高、风险可控的业务",
+            "exploration_resources": "10%：投入到不确定性高、潜力巨大的机会",
+            "key_principle": "10%部分的全部损失，不能影响90%部分的安全"
+          },
+          "madoff_lesson": "麦道夫受害者的致命错误：把不可承受的风险当成了可承受的风险。"
+        },
+        {
+          "component_type": "ai_tool_generation",
+          "title": "个性化认知风险管理系统",
+          "ai_config": {
+            "engine": "gemini_2.0_flash",
+            "prompt_template_id": "assistant_personalized_tool_v1",
+            "input_context_keys": [
+              "user_system_name",
+              "user_core_principle", 
+              "decision_authority",
+              "decision_performance",
+              "decision_transparency",
+              "decision_social_proof",
+              "decision_risk_assessment",
+              "decision_final",
+              "capability_test_response"
+            ],
+            "personalization_rules": [
+              {
+                "condition": "decision_final == 'decline_investment'",
+                "emphasis": "wisdom_reinforcement",
+                "tone": "强化用户的正确判断"
+              },
+              {
+                "condition": "capability_test_response contains '四维'",
+                "emphasis": "framework_mastery",
+                "tone": "确认用户已掌握框架"
+              }
+            ],
+            "fallback_response_id": "assistant_static_tool_template",
+            "timeout_seconds": 4,
+            "max_retries": 2
+          }
+        },
+        {
+          "component_type": "static_tool_template",
+          "id": "assistant_static_tool_template",
+          "title": "通用决策安全系统模板",
+          "template": {
+            "system_name_placeholder": "{user_system_name}",
+            "core_principle_placeholder": "{user_core_principle}",
+            "framework_components": [
+              "🧠 四维独立验证矩阵：",
+              "1️⃣ 身份验证：区分职位权威 vs 专业权威",
+              "2️⃣ 能力验证：要求第三方审计的业绩证明",
+              "3️⃣ 信息验证：拒绝任何不合理的信息黑盒",
+              "4️⃣ 独立验证：获取真正独立的专业意见"
+            ],
+            "barbell_strategy": [
+              "⚖️ 杠铃风险管理策略：",
+              "• 90%资源：完全可验证、可控制的核心机会",
+              "• 10%资源：高风险高回报的探索性尝试",
+              "• 核心认知：明确区分\"理性决策\"与\"风险博弈\"",
+              "• 麦道夫教训：永远不要把核心资源押在无法验证的机会上"
+            ],
+            "warning_signals": [
+              "⚠️ 高危信号预警系统：",
+              "• \"这涉及商业机密，无法透露细节\"",
+              "• 过于完美的历史业绩表现",
+              "• 拒绝第三方审计或托管分离",
+              "• 基于权威身份的信任请求",
+              "• \"所有聪明人都在参与\"的群体暗示"
+            ],
+            "cognitive_upgrade": [
+              "🎯 高级决策者认知升级：",
+              "• 权威光环 ≠ 专业能力（区分职能边界）",
+              "• 异常稳定 = 最大风险信号（统计常识）",
+              "• 信息透明 = 可信度基础（尽调原则）",
+              "• 独立验证 > 集体共识（避免群体盲从）",
+              "• 系统思维 > 直觉判断（认知升级）"
+            ]
+          }
+        },
+        {
+          "component_type": "user_input_form",
+          "title": "定制你的专属决策系统",
+          "fields": [
+            {
+              "field_id": "user_system_name",
+              "label": "为你的决策系统命名",
+              "type": "text",
+              "placeholder": "例如：高级决策安全系统、认知防火墙、智慧决策矩阵",
+              "default": "高级决策安全系统",
+              "required": true
+            },
+            {
+              "field_id": "user_core_principle",
+              "label": "你的核心决策原则",
+              "type": "text", 
+              "placeholder": "例如：权威越强，越要验证；数据可以说谎，逻辑不会",
+              "default": "权威越强，越要验证",
+              "required": true
+            }
+          ],
+          "submit_button_text": "生成我的专属工具",
+          "ai_generation_trigger": true
+        },
+        {
+          "component_type": "application_extension",
+          "title": "认知工具的延伸应用",
+          "areas": [
+            "高管招聘：90%选择能力可验证的候选人，10%给有特殊潜力但背景复杂的人机会",
+            "战略合作：90%选择实力可查证的伙伴，10%探索有创新价值的新兴伙伴",
+            "业务拓展：90%投入已验证的盈利模式，10%试验具有颠覆潜力的新方向",
+            "技术投资：90%采用成熟可靠的解决方案，10%探索前沿但不确定的技术"
+          ],
+          "core_principle": "在追求增长的同时，保持生存韧性。"
+        },
+        {
+          "component_type": "sharing_strategies",
+          "title": "传播策略与思想领袖对话",
+          "opening_approaches": [
+            {
+              "type": "数据震撼",
+              "content": "你知道650亿美元是怎么消失的吗？受害者包括汇丰银行、瑞士银行的投委会，这些人的专业程度不比我们差..."
+            },
+            {
+              "type": "认知测试",
+              "content": "如果前央行行长推荐给你一个投资机会，你的第一反应是什么？信任还是质疑？让我告诉你一个真实的案例..."
+            },
+            {
+              "type": "同理心切入",
+              "content": "我们都有过因为相信权威而做错决策的经历。但有一个案例，连诺贝尔奖得主都中招了..."
+            }
+          ],
+          "key_principle": "关键是让听众先产生代入感，再给出震撼信息，最后提供解决方案。"
+        },
+        {
+          "component_type": "final_wisdom",
+          "content": "记住：**权威越强，越要验证；机会越好，越要谨慎**。您今天获得的，是一套在高风险决策中保持理性的专业系统。",
+          "call_to_action": "现在，带着这套强大的认知工具，去创造属于你的理性决策传奇吧！"
+        },
+        {
+          "component_type": "restart_option",
+          "button_text": "🔄 重新开始体验",
+          "description": "想要重新体验，或者带朋友一起感受认知升级的震撼？"
+        }
+      ]
     }
   ],
+
+  "magic_moments": [
+    {
+      "moment_id": "reality_disruption",
+      "trigger": {
+        "act_id": 2,
+        "component_type": "reality_shock"
+      },
+      "effect": {
+        "visual": "screen_flash_red",
+        "audio": "heartbeat_tension.mp3",
+        "duration_ms": 3000,
+        "text_effect": "bold_large_red"
+      },
+      "description": "从第一幕切换到第二幕时的认知冲击"
+    },
+    {
+      "moment_id": "data_reveal",
+      "trigger": {
+        "act_id": 2,
+        "component_type": "shock_metrics"
+      },
+      "effect": {
+        "visual": "counter_animation",
+        "audio": "impact_sound.mp3",
+        "duration_ms": 4000,
+        "text_effect": "highlight_numbers_red"
+      },
+      "description": "650亿美元损失数据动态展示"
+    },
+    {
+      "moment_id": "framework_understanding",
+      "trigger": {
+        "act_id": 3,
+        "component_type": "framework_solution"
+      },
+      "effect": {
+        "visual": "gentle_glow_green",
+        "audio": "insight_chime.mp3",
+        "duration_ms": 2000,
+        "text_effect": "emphasis_fade_in"
+      },
+      "description": "四维验证框架理解时刻"
+    },
+    {
+      "moment_id": "tool_generation",
+      "trigger": {
+        "act_id": 4,
+        "component_type": "ai_tool_generation"
+      },
+      "effect": {
+        "visual": "creation_animation_cyan",
+        "audio": "success_fanfare.mp3", 
+        "duration_ms": 5000,
+        "text_effect": "typewriter_effect"
+      },
+      "description": "个性化工具生成时刻"
+    }
+  ],
+
   "personalization": {
     "enabled": true,
     "user_input_fields": [
@@ -554,29 +762,81 @@
         "label": "公司名称",
         "type": "text",
         "required": false,
-        "placeholder": "如：科技创新公司"
+        "placeholder": "如：科技创新公司",
+        "validation": "company_name"
       },
       {
-        "field_id": "investment_amount", 
-        "label": "投资金额",
+        "field_id": "investment_amount",
+        "label": "投资金额", 
         "type": "text",
         "required": false,
-        "placeholder": "如：5000万人民币"
+        "placeholder": "如：5000万人民币",
+        "validation": "investment_amount"
       },
       {
         "field_id": "decision_context",
         "label": "决策背景",
-        "type": "textarea", 
+        "type": "textarea",
         "required": false,
-        "placeholder": "如：寻找稳健的投资机会"
+        "placeholder": "如：寻找稳健的投资机会",
+        "validation": "decision_context"
       }
     ],
     "ai_personalization": {
       "enabled": true,
-      "dynamic_content": [
-        "第二幕投资人质疑",
-        "第四幕个性化工具生成"
+      "dynamic_content_components": [
+        "ai_challenge",
+        "ai_tool_generation"
+      ],
+      "personalization_data_sources": [
+        "user_decision_patterns",
+        "response_quality_indicators",
+        "engagement_metrics"
       ]
+    }
+  },
+
+  "ai_integration": {
+    "enabled": true,
+    "supported_engines": ["gemini_2.0_flash", "claude_3.5_sonnet"],
+    "prompt_templates": {
+      "investor_personalized_challenge_v1": {
+        "description": "根据用户第一幕决策生成个性化投资人质疑",
+        "base_prompt": "你是华尔街资深投资人，需要根据用户的具体决策逻辑进行犀利质疑...",
+        "context_variables": ["user_decisions", "case_metadata"],
+        "output_format": "structured_markdown",
+        "quality_threshold": 7.0
+      },
+      "assistant_personalized_tool_v1": {
+        "description": "根据用户输入生成个性化决策工具",
+        "base_prompt": "你是专业执行助理，需要为用户创建个性化的决策安全系统...",
+        "context_variables": ["user_system_name", "user_core_principle", "user_decision_history"],
+        "output_format": "downloadable_markdown",
+        "quality_threshold": 8.0
+      }
+    },
+    "fallback_strategy": {
+      "enabled": true,
+      "timeout_seconds": 3,
+      "max_retries": 2,
+      "quality_threshold": 6.0,
+      "fallback_content_source": "static_components"
+    }
+  },
+
+  "technical_metadata": {
+    "schema_version": "2.0.0",
+    "created_by": "Hoshino (S)",
+    "technical_implementation": "Claude (C)",
+    "last_updated": "2025-01-14",
+    "compatible_architectures": ["modular_config_driven", "ai_enhanced"],
+    "estimated_total_words": 15000,
+    "estimated_ai_calls": 4,
+    "caching_strategy": "aggressive_with_personalization",
+    "performance_targets": {
+      "page_load_time_ms": 2000,
+      "ai_response_time_ms": 3000,
+      "total_experience_time_minutes": 18
     }
   }
 }
