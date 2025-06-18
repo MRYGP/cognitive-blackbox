@@ -1,6 +1,7 @@
 """
-Cognitive Black Box - Case Management System
+Cognitive Black Box - Case Management System (Fixed for New Schema)
 Handles loading, validation, and management of case configuration files
+Updated to support S's new acts array schema
 """
 
 import json
@@ -21,20 +22,9 @@ class CaseMetadata:
     difficulty_level: str
     financial_impact: Dict[str, Any]
 
-@dataclass
-class ActContent:
-    """Act content structure"""
-    theme_color: str
-    role: str
-    title: str
-    progress: int
-    opening_quote: str
-    knowledge_card: Dict[str, Any]
-    content: Dict[str, Any]
-
 class CaseManager:
     """
-    Case configuration manager
+    Case configuration manager (Updated for New Schema)
     Responsible for loading, validating, and managing case files
     """
     
@@ -80,10 +70,13 @@ class CaseManager:
             with open(case_file, 'r', encoding='utf-8') as f:
                 case_data = json.load(f)
             
-            # Validate case data
-            if not self._validate_case_data(case_data):
+            # Validate case data (NEW SCHEMA)
+            if not self._validate_case_data_new_schema(case_data):
                 self.logger.error(f"Invalid case data structure: {case_id}")
                 return None
+            
+            # Transform to internal format if needed
+            case_data = self._transform_case_data(case_data)
             
             # Cache the loaded case
             self.loaded_cases[case_id] = case_data
@@ -98,9 +91,9 @@ class CaseManager:
             self.logger.error(f"Error loading case '{case_id}': {str(e)}")
             return None
     
-    def _validate_case_data(self, case_data: Dict[str, Any]) -> bool:
+    def _validate_case_data_new_schema(self, case_data: Dict[str, Any]) -> bool:
         """
-        Validate case data structure
+        Validate case data structure (NEW SCHEMA SUPPORT)
         
         Args:
             case_data: Case configuration data
@@ -125,16 +118,56 @@ class CaseManager:
                 self.logger.error(f"Missing metadata key: {key}")
                 return False
         
-        # Check acts structure
+        # Check acts structure (NEW SCHEMA - array of acts)
         acts = case_data['acts']
-        required_acts = ['act1_host', 'act2_investor', 'act3_mentor', 'act4_assistant']
+        if not isinstance(acts, list):
+            self.logger.error("Acts must be an array")
+            return False
         
-        for act in required_acts:
-            if act not in acts:
-                self.logger.error(f"Missing act: {act}")
-                return False
+        # Validate each act has required fields
+        required_act_fields = ['act_id', 'act_name', 'role', 'components']
+        for i, act in enumerate(acts):
+            for field in required_act_fields:
+                if field not in act:
+                    self.logger.error(f"Missing field '{field}' in act {i+1}")
+                    return False
+        
+        # Check we have 4 acts (as expected for full experience)
+        if len(acts) != 4:
+            self.logger.warning(f"Expected 4 acts, found {len(acts)}")
         
         return True
+    
+    def _transform_case_data(self, case_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Transform new schema to internal format if needed
+        
+        Args:
+            case_data: Case data in new schema format
+        
+        Returns:
+            Transformed case data
+        """
+        # The new schema is already in the correct format for component_renderer
+        # Just ensure acts are accessible by both array index and ID
+        
+        acts_array = case_data['acts']
+        
+        # Create acts lookup for backward compatibility
+        acts_dict = {}
+        for act in acts_array:
+            act_id = act['act_id']
+            role = act['role']
+            
+            # Create legacy key format
+            legacy_key = f"act{act_id}_{role}"
+            acts_dict[legacy_key] = act
+        
+        # Add both formats
+        case_data['acts_array'] = acts_array  # New format for component_renderer
+        case_data['acts_dict'] = acts_dict    # Legacy format for compatibility
+        
+        return case_data
     
     def get_case_metadata(self, case_id: str) -> Optional[CaseMetadata]:
         """
@@ -152,12 +185,18 @@ class CaseManager:
         
         try:
             metadata = case_data['case_metadata']
+            
+            # Handle target_bias which might be string or dict in new schema
+            target_bias = metadata.get('target_bias', '')
+            if isinstance(target_bias, dict):
+                target_bias = target_bias.get('name_cn', target_bias.get('name_en', ''))
+            
             return CaseMetadata(
                 case_id=metadata['case_id'],
                 title=metadata['title'],
-                target_bias=metadata['target_bias'],
+                target_bias=target_bias,
                 duration_minutes=metadata['duration_minutes'],
-                target_user=metadata.get('target_user', ''),
+                target_user=metadata.get('target_user_profile', metadata.get('target_user', '')),
                 difficulty_level=metadata.get('difficulty_level', 'advanced'),
                 financial_impact=metadata.get('financial_impact', {})
             )
@@ -165,9 +204,33 @@ class CaseManager:
             self.logger.error(f"Error parsing metadata for case '{case_id}': {str(e)}")
             return None
     
+    def get_act_by_id(self, case_id: str, act_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get act by ID (NEW SCHEMA METHOD)
+        
+        Args:
+            case_id: Case identifier
+            act_id: Act ID (1, 2, 3, 4)
+        
+        Returns:
+            Dict containing act content, None if failed
+        """
+        case_data = self.load_case(case_id)
+        if not case_data:
+            return None
+        
+        acts_array = case_data.get('acts_array', case_data.get('acts', []))
+        
+        for act in acts_array:
+            if act.get('act_id') == act_id:
+                return act
+        
+        self.logger.error(f"Act with ID '{act_id}' not found in case '{case_id}'")
+        return None
+    
     def get_act_content(self, case_id: str, act_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get content for specific act
+        Get content for specific act (LEGACY COMPATIBILITY)
         
         Args:
             case_id: Case identifier
@@ -180,16 +243,42 @@ class CaseManager:
         if not case_data:
             return None
         
-        acts = case_data.get('acts', {})
-        if act_id not in acts:
-            self.logger.error(f"Act '{act_id}' not found in case '{case_id}'")
-            return None
+        # Try legacy format first
+        acts_dict = case_data.get('acts_dict', {})
+        if act_id in acts_dict:
+            return acts_dict[act_id]
         
-        return acts[act_id]
+        # Try to parse act_id format: "act{number}_{role}"
+        try:
+            if act_id.startswith('act') and '_' in act_id:
+                parts = act_id.split('_')
+                act_number = int(parts[0][3:])  # Extract number from "act1", "act2", etc.
+                return self.get_act_by_id(case_id, act_number)
+        except (ValueError, IndexError):
+            pass
+        
+        self.logger.error(f"Act '{act_id}' not found in case '{case_id}'")
+        return None
+    
+    def get_all_acts(self, case_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all acts for a case (NEW SCHEMA METHOD)
+        
+        Args:
+            case_id: Case identifier
+        
+        Returns:
+            List of acts, empty list if failed
+        """
+        case_data = self.load_case(case_id)
+        if not case_data:
+            return []
+        
+        return case_data.get('acts_array', case_data.get('acts', []))
     
     def get_decision_points(self, case_id: str) -> Optional[List[Dict[str, Any]]]:
         """
-        Get decision points for Act 1
+        Get decision points for Act 1 (UPDATED FOR NEW SCHEMA)
         
         Args:
             case_id: Case identifier
@@ -197,63 +286,37 @@ class CaseManager:
         Returns:
             List of decision points, None if failed
         """
-        act1_content = self.get_act_content(case_id, 'act1_host')
-        if not act1_content:
+        act1 = self.get_act_by_id(case_id, 1)
+        if not act1:
             return None
         
-        return act1_content.get('decision_points', [])
+        # Find decision_points component
+        components = act1.get('components', [])
+        for component in components:
+            if component.get('component_type') == 'decision_points':
+                return component.get('points', [])
+        
+        return None
     
-    def get_challenges(self, case_id: str) -> Optional[Dict[str, Any]]:
+    def get_ai_integration_config(self, case_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get challenges for Act 2
+        Get AI integration configuration (NEW SCHEMA METHOD)
         
         Args:
             case_id: Case identifier
         
         Returns:
-            Dict containing challenges, None if failed
-        """
-        act2_content = self.get_act_content(case_id, 'act2_investor')
-        if not act2_content:
-            return None
-        
-        return act2_content.get('four_challenges', {})
-    
-    def get_framework_content(self, case_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get framework content for Act 3
-        
-        Args:
-            case_id: Case identifier
-        
-        Returns:
-            Dict containing framework content, None if failed
-        """
-        act3_content = self.get_act_content(case_id, 'act3_mentor')
-        if not act3_content:
-            return None
-        
-        return act3_content.get('framework_solution', {})
-    
-    def get_personalization_config(self, case_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get personalization configuration
-        
-        Args:
-            case_id: Case identifier
-        
-        Returns:
-            Dict containing personalization config, None if failed
+            Dict containing AI config, None if failed
         """
         case_data = self.load_case(case_id)
         if not case_data:
             return None
         
-        return case_data.get('personalization', {})
+        return case_data.get('ai_integration', {})
     
     def get_magic_moments(self, case_id: str) -> Optional[List[Dict[str, Any]]]:
         """
-        Get magic moments configuration
+        Get magic moments configuration (NEW SCHEMA METHOD)
         
         Args:
             case_id: Case identifier
@@ -301,7 +364,8 @@ class CaseManager:
         return {
             'cached_cases': list(self.loaded_cases.keys()),
             'cache_size': len(self.loaded_cases),
-            'available_cases': self.get_available_cases()
+            'available_cases': self.get_available_cases(),
+            'schema_version': '2.0.0'
         }
     
     @st.cache_data(ttl=3600)  # Cache for 1 hour
@@ -319,7 +383,7 @@ class CaseManager:
 
 class CaseRenderer:
     """
-    Case content renderer
+    Case content renderer (UPDATED FOR NEW SCHEMA)
     Handles rendering of case content with theme support
     """
     
@@ -338,62 +402,70 @@ class CaseRenderer:
             'cyan': '#0891B2'
         }
     
-    def render_act_header(self, case_id: str, act_id: str) -> None:
+    def render_act_header(self, case_id: str, act_id: int) -> None:
         """
-        Render act header with theme
+        Render act header with theme (UPDATED FOR NEW SCHEMA)
         
         Args:
             case_id: Case identifier
-            act_id: Act identifier
+            act_id: Act ID (1, 2, 3, 4)
         """
-        act_content = self.case_manager.get_act_content(case_id, act_id)
+        act_content = self.case_manager.get_act_by_id(case_id, act_id)
         if not act_content:
-            st.error(f"Failed to load content for {act_id}")
+            st.error(f"Failed to load content for act {act_id}")
             return
         
         # Set theme
-        theme_color = act_content.get('theme_color', 'blue')
+        theme_color = act_content.get('theme_color_hex', '#2A52BE')
         
         # Render header
-        st.header(act_content.get('title', f'Act {act_id[-1]}'))
-        st.progress(act_content.get('progress', 0))
+        st.header(act_content.get('act_name', f'Act {act_id}'))
+        progress = act_content.get('progress_percentage', act_id * 25)
+        st.progress(progress / 100)
         
-        # Render quote if available
-        if 'opening_quote' in act_content:
-            st.info(act_content['opening_quote'])
+        # Find and render opening quote from components
+        components = act_content.get('components', [])
+        for component in components:
+            if component.get('component_type') == 'act_header':
+                if 'opening_quote' in component:
+                    st.info(component['opening_quote'])
+                break
     
-    def render_knowledge_card(self, case_id: str, act_id: str) -> None:
+    def render_knowledge_card(self, case_id: str, act_id: int) -> None:
         """
-        Render knowledge card sidebar
+        Render knowledge card sidebar (UPDATED FOR NEW SCHEMA)
         
         Args:
             case_id: Case identifier
-            act_id: Act identifier
+            act_id: Act ID
         """
-        act_content = self.case_manager.get_act_content(case_id, act_id)
-        if not act_content or 'knowledge_card' not in act_content:
+        act_content = self.case_manager.get_act_by_id(case_id, act_id)
+        if not act_content:
             return
         
-        knowledge_card = act_content['knowledge_card']
-        
-        with st.sidebar:
-            st.subheader(knowledge_card.get('title', 'Knowledge'))
-            
-            content = knowledge_card.get('content', [])
-            if isinstance(content, list):
-                for item in content:
-                    st.write(item)
-            else:
-                st.write(content)
+        # Find knowledge card component
+        components = act_content.get('components', [])
+        for component in components:
+            if component.get('component_type') == 'knowledge_card':
+                with st.sidebar:
+                    st.subheader(component.get('title', 'Knowledge'))
+                    
+                    content_items = component.get('content_items', [])
+                    for item in content_items:
+                        st.write(item)
+                break
     
     def render_css_theme(self, theme_color: str) -> None:
         """
         Inject CSS for theme
         
         Args:
-            theme_color: Theme color name
+            theme_color: Theme color name or hex
         """
-        color = self.theme_colors.get(theme_color, self.theme_colors['blue'])
+        if theme_color.startswith('#'):
+            color = theme_color
+        else:
+            color = self.theme_colors.get(theme_color, self.theme_colors['blue'])
         
         css = f"""
         <style>
