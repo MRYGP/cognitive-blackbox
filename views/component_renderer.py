@@ -1,6 +1,7 @@
 """
-Cognitive Black Box - Component-Based Renderer (Complete Fixed Version)
-Based on S's genius components array design - ALL METHODS IMPLEMENTED
+Cognitive Black Box - Component-Based Renderer (Final Fixed Version)
+🔧 P0 Fixed: 第四幕AI工具生成优化
+🔧 P1 Fixed: 第二幕AI成功后避免静态内容重复
 """
 
 import streamlit as st
@@ -367,10 +368,15 @@ class ComponentRenderer:
                 st.markdown("---")
     
     def _render_ai_challenge(self, component: Dict[str, Any]) -> None:
-        """Render AI challenge component - The heart of S's AI integration design"""
+        """
+        🔧 P1 FIXED: Render AI challenge component with proper logic separation
+        """
         st.subheader(component.get('title', 'AI 个性化质疑'))
         
         ai_config = component.get('ai_config', {})
+        
+        # 🔧 NEW: Add flag to track if AI succeeded
+        ai_succeeded = False
         
         if ai_config.get('enabled', True):
             # Build context from user decisions
@@ -387,6 +393,7 @@ class ComponentRenderer:
                 )
             
             if success:
+                ai_succeeded = True  # 🔧 NEW: Mark AI as succeeded
                 st.success("🤖 AI个性化分析完成")
                 st.markdown(ai_response)
                 
@@ -394,14 +401,12 @@ class ComponentRenderer:
                 quality_score = self._evaluate_ai_response_quality(ai_response, 'investor')
                 if quality_score < 6.0:
                     st.warning("AI响应质量偏低，已自动记录以优化服务")
-            else:
-                st.info("😊 AI服务暂时繁忙，为您提供专业的标准分析")
-                # Use fallback content
-                fallback_id = ai_config.get('fallback_response_id')
-                self._render_fallback_content(fallback_id)
-        else:
-            # AI disabled, use static content
-            fallback_id = ai_config.get('fallback_response_id')
+        
+        # 🔧 FIXED: Only show fallback content if AI didn't succeed
+        if not ai_succeeded:
+            st.info("😊 AI服务暂时繁忙，为您提供专业的标准分析")
+            # Use fallback content
+            fallback_id = ai_config.get('fallback_response_id', 'investor_static_challenge_set')
             self._render_fallback_content(fallback_id)
     
     def _render_static_challenge_set(self, component: Dict[str, Any]) -> None:
@@ -576,46 +581,306 @@ class ComponentRenderer:
             st.markdown(f"- **关键原则**: {allocation.get('key_principle', '')}")
     
     def _render_ai_tool_generation(self, component: Dict[str, Any]) -> None:
-        """Render AI tool generation component"""
-        st.subheader(component.get('title', 'AI工具生成'))
+        """
+        🔧 P0 FIXED: Enhanced AI tool generation with improved prompt and context
+        """
+        st.subheader(component.get('title', '定制您的专属决策系统'))
         
         ai_config = component.get('ai_config', {})
         
-        # Get user inputs for tool generation
-        user_system_name = st.session_state.get('user_system_name', '高级决策安全系统')
-        user_core_principle = st.session_state.get('user_core_principle', '权威越强，越要验证')
+        # 🔧 ENHANCED: Better user input collection
+        st.markdown("#### 为您的决策系统命名")
+        user_system_name = st.text_input(
+            "给您的决策系统起个名字：",
+            value=st.session_state.get('user_system_name', '高级决策安全系统'),
+            key='user_system_name_input'
+        )
+        st.session_state.user_system_name = user_system_name
         
-        if st.button("🚀 生成我的专属AI工具", type="primary"):
-            context = self._build_ai_context(ai_config)
-            context.update({
-                'user_system_name': user_system_name,
-                'user_core_principle': user_core_principle
-            })
+        st.markdown("#### 确定您的核心原则")
+        user_core_principle = st.text_input(
+            "用一句话描述您的核心决策原则：",
+            value=st.session_state.get('user_core_principle', '权威越强，越要验证'),
+            key='user_core_principle_input'
+        )
+        st.session_state.user_core_principle = user_core_principle
+        
+        # 🔧 ENHANCED: Show what will be generated
+        with st.expander("📋 预览：您将获得什么", expanded=False):
+            st.markdown("""
+            **您的专属决策系统将包含：**
+            - 🎯 个性化的决策验证清单
+            - 🔍 基于您经历设计的风险识别工具  
+            - 🛡️ 针对您决策模式的预警系统
+            - 📊 可立即使用的决策评估矩阵
+            - 📚 实施指导和使用建议
+            """)
+        
+        if st.button("🚀 生成我的专属决策系统", type="primary", use_container_width=True):
+            # 🔧 ENHANCED: Build comprehensive context
+            context = self._build_comprehensive_context_for_assistant(ai_config)
             
-            tool_prompt = f"生成个性化决策工具：系统名称={user_system_name}，核心原则={user_core_principle}"
+            # 🔧 ENHANCED: Improved prompt construction
+            enhanced_prompt = self._build_enhanced_assistant_prompt(user_system_name, user_core_principle, context)
             
-            with st.spinner("AI正在为您量身定制专属决策工具..."):
+            with st.spinner("🤖 AI正在基于您的决策模式，量身定制专属系统..."):
                 ai_tool_content, success = ai_engine.generate_response(
                     'assistant',
-                    tool_prompt,
+                    enhanced_prompt,
                     context
                 )
             
             if success:
-                st.success("🎉 您的专属AI工具已生成！")
+                st.success("🎉 您的专属决策系统已生成完成！")
+                
+                # 🔧 NEW: Add system info display
+                st.info(f"**系统名称**: {user_system_name}  \n**核心原则**: {user_core_principle}")
+                
+                # Show the generated content
                 st.markdown(ai_tool_content)
                 
-                # Download option
-                st.download_button(
-                    label="📥 下载我的专属工具",
-                    data=ai_tool_content,
-                    file_name=f"{user_system_name}_AI定制版.md",
-                    mime="text/markdown"
-                )
+                # 🔧 ENHANCED: Better download options
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.download_button(
+                        label="📥 下载完整系统 (Markdown)",
+                        data=ai_tool_content,
+                        file_name=f"{user_system_name.replace(' ', '_')}_决策系统.md",
+                        mime="text/markdown",
+                        use_container_width=True
+                    )
+                with col2:
+                    # Create a simple checklist version
+                    checklist_content = self._extract_checklist_from_content(ai_tool_content, user_system_name)
+                    st.download_button(
+                        label="📋 下载检查清单 (TXT)",
+                        data=checklist_content,
+                        file_name=f"{user_system_name.replace(' ', '_')}_检查清单.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
+                
+                # 🔧 NEW: Usage encouragement
+                st.markdown("---")
+                st.success("💡 **建议**：请将这套系统保存到您的手机或电脑中，在下次面临重要决策时立即使用！")
+                
             else:
-                st.info("😊 AI服务暂时繁忙，为您提供专业的通用工具模板")
-                fallback_id = ai_config.get('fallback_response_id')
-                self._render_fallback_content(fallback_id)
+                st.warning("⚠️ AI服务暂时繁忙，为您提供专业的通用系统模板")
+                # 🔧 ENHANCED: Better fallback content
+                self._render_enhanced_fallback_tool(user_system_name, user_core_principle)
+    
+    def _build_comprehensive_context_for_assistant(self, ai_config: Dict[str, Any]) -> Dict[str, Any]:
+        """🔧 NEW: Build comprehensive context for assistant AI calls"""
+        context = {
+            'current_step': st.session_state.get('current_step', 4),
+            'case_name': 'madoff',
+            'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
+            'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证'),
+            'user_decisions': st.session_state.get('user_decisions', {}),
+            'user_background': self._infer_user_background(),
+            'session_insights': self._extract_session_insights()
+        }
+        
+        # Add specified context keys from ai_config
+        input_context_keys = ai_config.get('input_context_keys', [])
+        for key in input_context_keys:
+            if key in st.session_state:
+                context[key] = st.session_state[key]
+        
+        return context
+    
+    def _build_enhanced_assistant_prompt(self, system_name: str, core_principle: str, context: Dict[str, Any]) -> str:
+        """🔧 NEW: Build enhanced prompt for assistant AI"""
+        user_decisions_summary = self._summarize_user_decisions(context.get('user_decisions', {}))
+        
+        prompt = f"""
+请为用户设计一个完整的个性化决策安全系统。
+
+**用户信息：**
+- 系统名称：{system_name}
+- 核心原则：{core_principle}
+- 决策背景：{context.get('user_background', '高级管理者')}
+
+**用户在麦道夫案例中的决策表现：**
+{user_decisions_summary}
+
+**设计要求：**
+1. 系统必须体现用户的核心原则："{core_principle}"
+2. 针对用户在案例中的决策模式进行个性化设计
+3. 提供立即可用的检查清单、评估工具和实施指导
+4. 内容要专业、实用、易于在实际工作中应用
+5. 确保系统名称"{system_name}"贯穿整个设计
+
+请生成一个完整的、个性化的决策安全系统。
+"""
+        return prompt
+    
+    def _summarize_user_decisions(self, user_decisions: Dict[str, Any]) -> str:
+        """🔧 NEW: Summarize user decisions for AI prompt"""
+        if not user_decisions:
+            return "用户尚未完成决策分析，请提供通用的专业建议。"
+        
+        summary = "用户决策特点：\n"
+        for decision_id, decision_content in user_decisions.items():
+            if decision_content and len(str(decision_content).strip()) > 0:
+                # Truncate long decisions
+                content = str(decision_content)[:150]
+                if len(str(decision_content)) > 150:
+                    content += "..."
+                summary += f"- {decision_id}: {content}\n"
+        
+        return summary
+    
+    def _infer_user_background(self) -> str:
+        """🔧 NEW: Infer user background from session data"""
+        # Simple inference based on available data
+        decisions = st.session_state.get('user_decisions', {})
+        if decisions:
+            # Look for professional terms in user responses
+            all_text = " ".join(str(v) for v in decisions.values()).lower()
+            if any(term in all_text for term in ['投资', '股票', '基金', '金融']):
+                return '金融行业专业人士'
+            elif any(term in all_text for term in ['技术', '产品', '开发', '创新']):
+                return '科技行业管理者'
+            elif any(term in all_text for term in ['咨询', '战略', '分析']):
+                return '咨询行业专家'
+        
+        return '高级管理决策者'
+    
+    def _extract_session_insights(self) -> List[str]:
+        """🔧 NEW: Extract key insights from the session"""
+        insights = []
+        
+        # Check what user learned
+        if st.session_state.get('completed_acts', []):
+            insights.append("已完成完整的认知升级体验")
+        
+        # Check decision patterns
+        decisions = st.session_state.get('user_decisions', {})
+        if decisions:
+            insights.append("对权威和业绩验证有深度思考")
+        
+        return insights
+    
+    def _extract_checklist_from_content(self, content: str, system_name: str) -> str:
+        """🔧 NEW: Extract checklist from AI generated content"""
+        checklist = f"{system_name} - 快速检查清单\n"
+        checklist += "=" * 50 + "\n\n"
+        
+        # Look for numbered lists or bullet points in the content
+        lines = content.split('\n')
+        in_checklist = False
+        
+        for line in lines:
+            line = line.strip()
+            if any(keyword in line.lower() for keyword in ['清单', '检查', '验证', '步骤']):
+                in_checklist = True
+                checklist += f"\n【{line}】\n"
+            elif line.startswith(('- ', '* ', '1.', '2.', '3.', '4.', '5.')):
+                if in_checklist:
+                    checklist += f"☐ {line.lstrip('- *123456789.')}\n"
+        
+        # If no checklist found, create a basic one
+        if len(checklist.split('\n')) < 5:
+            checklist += """
+基本决策验证：
+☐ 权威资质确认 - 验证决策者的专业能力边界
+☐ 数据独立核实 - 通过第三方渠道验证关键信息  
+☐ 异常表现分析 - 检查是否存在统计学异常
+☐ 透明度评估 - 评估信息披露的充分性
+☐ 集体偏见识别 - 确认是否存在群体思维
+☐ 长期风险评估 - 考虑决策的长期后果
+"""
+        
+        return checklist
+    
+    def _render_enhanced_fallback_tool(self, system_name: str, core_principle: str) -> None:
+        """🔧 NEW: Enhanced fallback content when AI fails"""
+        st.markdown(f"### {system_name}")
+        st.markdown(f"**核心原则**: {core_principle}")
+        
+        st.markdown("""
+#### 🔍 决策验证清单
+
+**第一步：权威验证**
+- ☐ 确认决策相关方的专业资质和能力边界
+- ☐ 验证权威人士在此领域的历史表现
+- ☐ 区分职位权威与专业能力
+
+**第二步：数据核实**  
+- ☐ 通过独立渠道验证关键数据
+- ☐ 检查数据的时效性和完整性
+- ☐ 识别可能的数据操纵迹象
+
+**第三步：异常分析**
+- ☐ 评估表现是否过于完美或一致
+- ☐ 对比行业基准和历史趋势
+- ☐ 调查异常稳定背后的真实原因
+
+**第四步：风险评估**
+- ☐ 识别最坏情况及其概率
+- ☐ 评估损失承受能力
+- ☐ 制定应急预案
+
+#### 🚨 高危信号预警
+
+当遇到以下情况时，请提高警惕：
+- 🔴 拒绝透明度要求或信息披露
+- 🔴 过于完美的历史表现记录
+- 🔴 强烈依赖权威背书而缺乏实质验证
+- 🔴 群体性的一致好评但缺乏批判声音
+
+#### 💡 实施建议
+
+1. **日常使用**：将此清单保存在手机中，重大决策前必看
+2. **团队分享**：与决策团队共享，建立集体验证机制  
+3. **定期回顾**：每月回顾决策质量，持续改进工具
+4. **案例积累**：记录成功和失败案例，丰富经验库
+""")
+        
+        # Still provide download for fallback content
+        fallback_content = f"""# {system_name}
+
+**核心原则**: {core_principle}
+
+## 决策验证清单
+
+### 权威验证
+- 确认专业资质和能力边界
+- 验证历史表现记录
+- 区分职位权威与专业能力
+
+### 数据核实  
+- 独立渠道验证关键数据
+- 检查时效性和完整性
+- 识别数据操纵迹象
+
+### 异常分析
+- 评估表现合理性
+- 对比行业基准
+- 调查异常原因
+
+### 风险评估
+- 识别最坏情况
+- 评估承受能力
+- 制定应急预案
+
+## 高危信号预警
+- 拒绝透明度要求
+- 过于完美的表现
+- 过度依赖权威背书
+- 群体性一致好评
+
+使用此工具，让每个决策都经过科学验证！
+"""
+        
+        st.download_button(
+            label="📥 下载通用决策系统",
+            data=fallback_content,
+            file_name=f"{system_name.replace(' ', '_')}_通用版.md",
+            mime="text/markdown",
+            use_container_width=True
+        )
     
     def _render_static_tool_template(self, component: Dict[str, Any]) -> None:
         """Render static tool template component"""
@@ -769,7 +1034,7 @@ class ComponentRenderer:
         # Role-specific keyword checks
         role_keywords = {
             'investor': ['投资', '风险', '数据', '分析', '质疑'],
-            'assistant': ['工具', '系统', '实用', '指导', '专属']
+            'assistant': ['工具', '系统', '实用', '指导', '专属', '决策', '检查']
         }
         
         keywords = role_keywords.get(role, [])
@@ -783,12 +1048,28 @@ class ComponentRenderer:
         if fallback_id == 'investor_static_challenge_set':
             # Render static investor challenges
             st.markdown("### 投资人的专业质疑")
-            st.markdown("当AI服务不可用时，我们为您提供同样专业的标准分析...")
+            st.markdown("""
+            **权威资质质疑**：SEC主席的监管能力等同于投资专业能力吗？
+            
+            **业绩异常质疑**：15年如一日的稳定回报，在统计学上意味着什么？
+            
+            **透明度质疑**：什么样的投资策略需要完全保密？
+            
+            **集体盲点质疑**：如果所有人都基于同一个信息源做判断，会发生什么？
+            """)
             
         elif fallback_id == 'assistant_static_tool_template':
             # Render static tool template
             st.markdown("### 通用决策安全系统")
-            st.markdown("这是经过验证的决策工具模板，您可以直接使用...")
+            st.markdown("""
+            **基础验证清单**：
+            - 权威资质确认
+            - 数据独立核实
+            - 异常表现分析
+            - 风险承受评估
+            
+            这是经过验证的决策工具模板，您可以直接使用并根据具体情况调整。
+            """)
 
 # Global component renderer instance
 component_renderer = ComponentRenderer()
