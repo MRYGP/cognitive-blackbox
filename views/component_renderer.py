@@ -675,11 +675,9 @@ class ComponentRenderer:
     
     def _render_ai_tool_generation(self, component: Dict[str, Any]) -> None:
         """
-        🔧 P0 FIXED: Enhanced AI tool generation with improved prompt and context
+        🔧 P0 CRITICAL FIX: AI tool generation with optimized calling and robust fallback
         """
         st.subheader(component.get('title', '定制您的专属决策系统'))
-        
-        ai_config = component.get('ai_config', {})
         
         # 🔧 ENHANCED: Better user input collection
         st.markdown("#### 为您的决策系统命名")
@@ -710,93 +708,93 @@ class ComponentRenderer:
             """)
         
         if st.button("🚀 生成我的专属决策系统", type="primary", use_container_width=True):
-            # 🔧 P0 FIXED: Build comprehensive context with all required fields
-            context = {
-                'current_step': st.session_state.get('current_step', 4),
-                'case_name': 'madoff',
-                'user_system_name': user_system_name,
-                'user_core_principle': user_core_principle,
-                'user_decisions': st.session_state.get('user_decisions', {}),
-                'user_background': self._infer_user_background(),
-                'session_insights': self._extract_session_insights(),
-                'capability_test_response': st.session_state.get('capability_test_response', ''),
-                'personalization_active': st.session_state.get('personalization_active', True)
-            }
-            
-            # 🔧 P0 FIXED: Improved prompt construction
-            enhanced_prompt = f"""
-请为用户设计一个完整的个性化决策安全系统。
-
-**用户信息：**
-- 系统名称：{user_system_name}
-- 核心原则：{user_core_principle}
-- 决策背景：{context.get('user_background', '高级管理者')}
-
-**用户在麦道夫案例中的决策表现：**
-{self._summarize_user_decisions(context.get('user_decisions', {}))}
-
-**设计要求：**
-1. 系统必须体现用户的核心原则："{user_core_principle}"
-2. 针对用户在案例中的决策模式进行个性化设计
-3. 提供立即可用的检查清单、评估工具和实施指导
-4. 内容要专业、实用、易于在实际工作中应用
-5. 确保系统名称"{user_system_name}"贯穿整个设计
-
-请生成一个完整的、个性化的决策安全系统，包含：
-- 🎯 核心决策原则
-- 🔍 四维验证清单
-- ⚖️ 杠铃风险管理策略
-- ⚠️ 高危信号预警系统
-- 🎯 认知升级要点
-
-格式要求：使用Markdown格式，结构清晰，便于下载和使用。
-"""
-            
-            with st.spinner("🤖 AI正在基于您的决策模式，量身定制专属系统..."):
-                ai_tool_content, success = ai_engine.generate_response(
-                    'assistant',
-                    enhanced_prompt,
-                    context
-                )
-            
-            if success:
-                st.success("🎉 您的专属决策系统已生成完成！")
+            # 🔧 P0 CRITICAL: Simplified and robust AI calling
+            try:
+                # Build minimal but complete context
+                user_decisions = st.session_state.get('user_decisions', {})
+                decision_summary = self._build_simple_decision_summary(user_decisions)
                 
-                # 🔧 NEW: Add system info display
-                st.info(f"**系统名称**: {user_system_name}  \n**核心原则**: {user_core_principle}")
+                # 🔧 CRITICAL FIX: Simplified, shorter prompt for better success rate
+                optimized_prompt = f"""基于用户信息设计个性化决策系统：
+
+系统名称：{user_system_name}
+核心原则：{user_core_principle}
+用户决策特点：{decision_summary}
+
+请生成包含以下部分的实用系统：
+1. 核心验证清单（4-5个要点）
+2. 风险预警信号（3-4个高危信号）
+3. 实施建议（简明实用）
+
+要求：内容实用、结构清晰、体现"{user_core_principle}"原则"""
+
+                # 🔧 CRITICAL FIX: More robust context for AI engine
+                simple_context = {
+                    'role': 'assistant',
+                    'user_name': user_system_name,
+                    'user_principle': user_core_principle,
+                    'personalization': True
+                }
                 
-                # Show the generated content
-                st.markdown(ai_tool_content)
-                
-                # 🔧 ENHANCED: Better download options
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.download_button(
-                        label="📥 下载完整系统 (Markdown)",
-                        data=ai_tool_content,
-                        file_name=f"{user_system_name.replace(' ', '_')}_决策系统.md",
-                        mime="text/markdown",
-                        use_container_width=True
+                with st.spinner("🤖 AI正在生成您的专属决策系统..."):
+                    # 🔧 P0 FIX: Add debug info and better error handling
+                    ai_tool_content, success = ai_engine.generate_response(
+                        'assistant', 
+                        optimized_prompt, 
+                        simple_context
                     )
-                with col2:
-                    # Create a simple checklist version
-                    checklist_content = self._extract_checklist_from_content(ai_tool_content, user_system_name)
-                    st.download_button(
-                        label="📋 下载检查清单 (TXT)",
-                        data=checklist_content,
-                        file_name=f"{user_system_name.replace(' ', '_')}_检查清单.txt",
-                        mime="text/plain",
-                        use_container_width=True
-                    )
+                    
+                    # 🔧 DEBUG: Show what happened for troubleshooting
+                    if not success:
+                        st.error("🔧 **调试信息**: AI调用失败，正在使用备用方案")
+                        if st.checkbox("显示调试详情", key="debug_ai"):
+                            st.code(f"Prompt length: {len(optimized_prompt)} chars")
+                            st.code(f"Context: {simple_context}")
                 
-                # 🔧 NEW: Usage encouragement
-                st.markdown("---")
-                st.success("💡 **建议**：请将这套系统保存到您的手机或电脑中，在下次面临重要决策时立即使用！")
-                
-            else:
-                st.warning("⚠️ AI服务暂时繁忙，为您提供专业的通用系统模板")
-                # 🔧 ENHANCED: Better fallback content
-                self._render_enhanced_fallback_tool(user_system_name, user_core_principle)
+                if success and ai_tool_content and len(ai_tool_content.strip()) > 50:
+                    st.success("🎉 您的专属决策系统已生成完成！")
+                    
+                    # 🔧 NEW: Add system info display
+                    st.info(f"**系统名称**: {user_system_name}  \n**核心原则**: {user_core_principle}")
+                    
+                    # Show the generated content
+                    st.markdown(ai_tool_content)
+                    
+                    # 🔧 ENHANCED: Better download options
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.download_button(
+                            label="📥 下载完整系统 (Markdown)",
+                            data=ai_tool_content,
+                            file_name=f"{user_system_name.replace(' ', '_')}_决策系统.md",
+                            mime="text/markdown",
+                            use_container_width=True
+                        )
+                    with col2:
+                        # Create a simple checklist version
+                        checklist_content = self._extract_checklist_from_content(ai_tool_content, user_system_name)
+                        st.download_button(
+                            label="📋 下载检查清单 (TXT)",
+                            data=checklist_content,
+                            file_name=f"{user_system_name.replace(' ', '_')}_检查清单.txt",
+                            mime="text/plain",
+                            use_container_width=True
+                        )
+                    
+                    # 🔧 NEW: Usage encouragement
+                    st.markdown("---")
+                    st.success("💡 **建议**：请将这套系统保存到您的手机或电脑中，在下次面临重要决策时立即使用！")
+                    
+                else:
+                    # 🔧 P0 CRITICAL: Enhanced fallback with proper variable replacement
+                    st.warning("⚠️ AI服务暂时繁忙，为您提供专业的个性化系统模板")
+                    self._render_robust_fallback_tool(user_system_name, user_core_principle)
+                    
+            except Exception as e:
+                # 🔧 P0 CRITICAL: Catch all exceptions and provide fallback
+                st.error(f"🔧 **系统错误**: {str(e)[:100]}...")
+                st.info("正在为您提供备用的专业系统模板")
+                self._render_robust_fallback_tool(user_system_name, user_core_principle)
     
     def _render_static_tool_template(self, component: Dict[str, Any]) -> None:
         """Render static tool template component"""
@@ -1013,6 +1011,155 @@ class ComponentRenderer:
             这是经过验证的决策工具模板，您可以直接使用并根据具体情况调整。
             """)
     
+    def _build_simple_decision_summary(self, user_decisions: Dict[str, Any]) -> str:
+        """🔧 P0 CRITICAL: Build simple decision summary for AI prompt"""
+        if not user_decisions:
+            return "谨慎的决策者，重视风险控制"
+        
+        # Get final decision to determine user type
+        final_decision = user_decisions.get('decision_final', '')
+        
+        if '全力投入' in str(final_decision):
+            return "激进型决策者，容易被权威影响"
+        elif '暂不投资' in str(final_decision) or '拒绝' in str(final_decision):
+            return "谨慎型决策者，有良好风险意识"
+        else:
+            return "平衡型决策者，有一定风险控制意识"
+    
+    def _render_robust_fallback_tool(self, system_name: str, core_principle: str) -> None:
+        """🔧 P0 CRITICAL: Robust fallback tool with perfect variable replacement"""
+        st.markdown(f"### 🛡️ {system_name}")
+        st.markdown(f"**核心原则**: {core_principle}")
+        
+        # 🔧 CRITICAL: Generate personalized fallback based on principle
+        if '权威' in core_principle:
+            focus_area = "权威验证"
+            special_warning = "权威背书可能掩盖真实风险"
+        elif '数据' in core_principle:
+            focus_area = "数据验证"
+            special_warning = "数据可能被操纵或选择性披露"
+        elif '风险' in core_principle:
+            focus_area = "风险控制"
+            special_warning = "过度自信可能低估尾部风险"
+        else:
+            focus_area = "综合验证"
+            special_warning = "认知偏误可能影响判断质量"
+        
+        # 🔧 PERSONALIZED: Generate content based on user's principle
+        personalized_content = f"""
+#### 🔍 {system_name} - 核心验证清单
+
+**第一步：{focus_area}重点检查**
+- ☐ 确认决策相关方的专业资质和能力边界
+- ☐ 验证关键信息的独立来源和可靠性
+- ☐ 识别可能的利益冲突和动机偏差
+
+**第二步：异常信号识别**
+- ☐ 检查表现是否过于完美或异常一致
+- ☐ 对比行业基准和历史数据
+- ☐ 寻找不合理的保密要求或透明度缺失
+
+**第三步：风险承受评估**
+- ☐ 明确最坏情况及其发生概率
+- ☐ 评估损失对整体目标的影响程度
+- ☐ 制定应急预案和退出策略
+
+#### 🚨 {system_name} - 高危预警信号
+
+**特别警惕**: {special_warning}
+
+**立即停止决策的信号**:
+- 🔴 拒绝提供关键信息或过度保密
+- 🔴 过分依赖权威背书而缺乏实质证据
+- 🔴 群体性一致好评但缺乏独立验证
+- 🔴 时间压力过大，不允许充分调研
+
+#### 💡 实施指导
+
+**日常使用**: 将此清单保存在手机中，重大决策前必查
+**团队协作**: 与决策团队分享，建立集体验证机制
+**持续改进**: 每季度回顾决策质量，更新验证标准
+
+---
+**{system_name}** | 核心原则: {core_principle}
+---
+"""
+        
+        st.markdown(personalized_content)
+        
+        # 🔧 ENHANCED: Provide perfect download with all variables replaced
+        download_content = f"""# {system_name}
+
+**核心原则**: {core_principle}
+
+## 专属决策验证系统
+
+### {focus_area}重点检查
+- 确认专业资质和能力边界
+- 验证信息独立来源和可靠性
+- 识别利益冲突和动机偏差
+
+### 异常信号识别
+- 检查表现异常性
+- 对比行业基准
+- 寻找透明度缺失
+
+### 风险承受评估
+- 明确最坏情况
+- 评估损失影响
+- 制定应急预案
+
+## 高危预警信号
+
+特别警惕: {special_warning}
+
+立即停止决策的信号:
+- 拒绝提供关键信息
+- 过分依赖权威背书
+- 群体性一致好评缺乏验证
+- 时间压力过大
+
+## 实施指导
+- 日常使用: 保存在手机，决策前必查
+- 团队协作: 建立集体验证机制  
+- 持续改进: 季度回顾更新标准
+
+核心原则: {core_principle}
+系统名称: {system_name}
+
+使用此工具，让每个决策都经过科学验证！
+"""
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                label="📥 下载完整系统 (Markdown)",
+                data=download_content,
+                file_name=f"{system_name.replace(' ', '_')}_决策系统.md",
+                mime="text/markdown",
+                use_container_width=True
+            )
+        with col2:
+            # Simple checklist version
+            checklist = f"""{system_name} - 快速检查清单
+
+☐ 权威资质确认
+☐ 信息独立验证
+☐ 异常表现分析
+☐ 风险承受评估
+☐ 透明度充分性检查
+☐ 时间压力合理性
+
+核心原则: {core_principle}
+"""
+            st.download_button(
+                label="📋 下载检查清单 (TXT)", 
+                data=checklist,
+                file_name=f"{system_name.replace(' ', '_')}_检查清单.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
+    
     def _summarize_user_decisions(self, user_decisions: Dict[str, Any]) -> str:
         """🔧 P0 NEW: Summarize user decisions for AI prompt"""
         if not user_decisions:
@@ -1091,101 +1238,6 @@ class ComponentRenderer:
 """
         
         return checklist
-    
-    def _render_enhanced_fallback_tool(self, system_name: str, core_principle: str) -> None:
-        """🔧 P1 FIXED: Enhanced fallback content with proper variable replacement"""
-        st.markdown(f"### {system_name}")
-        st.markdown(f"**核心原则**: {core_principle}")
-        
-        # 🔧 P1 NEW: Template with proper variable replacement
-        template_content = f"""
-#### 🔍 决策验证清单
-
-**第一步：权威验证**
-- ☐ 确认决策相关方的专业资质和能力边界
-- ☐ 验证权威人士在此领域的历史表现
-- ☐ 区分职位权威与专业能力
-
-**第二步：数据核实**  
-- ☐ 通过独立渠道验证关键数据
-- ☐ 检查数据的时效性和完整性
-- ☐ 识别可能的数据操纵迹象
-
-**第三步：异常分析**
-- ☐ 评估表现是否过于完美或一致
-- ☐ 对比行业基准和历史趋势
-- ☐ 调查异常稳定背后的真实原因
-
-**第四步：风险评估**
-- ☐ 识别最坏情况及其概率
-- ☐ 评估损失承受能力
-- ☐ 制定应急预案
-
-#### 🚨 高危信号预警
-
-当遇到以下情况时，请提高警惕：
-- 🔴 拒绝透明度要求或信息披露
-- 🔴 过于完美的历史表现记录
-- 🔴 强烈依赖权威背书而缺乏实质验证
-- 🔴 群体性的一致好评但缺乏批判声音
-
-#### 💡 实施建议
-
-1. **日常使用**：将此清单保存在手机中，重大决策前必看
-2. **团队分享**：与决策团队共享，建立集体验证机制  
-3. **定期回顾**：每月回顾决策质量，持续改进工具
-4. **案例积累**：记录成功和失败案例，丰富经验库
-
-**核心原则**: {core_principle}
-"""
-        
-        st.markdown(template_content)
-        
-        # 🔧 P1 FIXED: Provide download with proper variable replacement
-        fallback_content = f"""# {system_name}
-
-**核心原则**: {core_principle}
-
-## 决策验证清单
-
-### 权威验证
-- 确认专业资质和能力边界
-- 验证历史表现记录
-- 区分职位权威与专业能力
-
-### 数据核实  
-- 独立渠道验证关键数据
-- 检查时效性和完整性
-- 识别数据操纵迹象
-
-### 异常分析
-- 评估表现合理性
-- 对比行业基准
-- 调查异常原因
-
-### 风险评估
-- 识别最坏情况
-- 评估承受能力
-- 制定应急预案
-
-## 高危信号预警
-- 拒绝透明度要求
-- 过于完美的表现
-- 过度依赖权威背书
-- 群体性一致好评
-
-**核心原则**: {core_principle}
-
-使用此工具，让每个决策都经过科学验证！
-"""
-        
-        st.download_button(
-            label="📥 下载通用决策系统",
-            data=fallback_content,
-            file_name=f"{system_name.replace(' ', '_')}_通用版.md",
-            mime="text/markdown",
-            use_container_width=True
-        )
 
 # Global component renderer instance
 component_renderer = ComponentRenderer()
