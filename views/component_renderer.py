@@ -746,27 +746,6 @@ class ComponentRenderer:
             st.markdown(f"- **探索资源**: {allocation.get('exploration_resources', '')}")
             st.markdown(f"- **关键原则**: {allocation.get('key_principle', '')}")
     
-    # views/component_renderer.py - Enhanced AI Tool Generation Component
-"""
-优化后的组件渲染器 - 解决第四幕AI工具生成问题
-主要改进：
-1. 完美的变量传递机制
-2. 高质量的降级体验
-3. 智能的用户输入处理
-4. 无技术占位符的个性化内容
-"""
-
-import streamlit as st
-import time
-from typing import Dict, Any, Optional
-from core.ai_engine import ai_engine
-
-class EnhancedComponentRenderer:
-    """
-    🔧 优化后的组件渲染器
-    专门解决第四幕AI工具生成的质量问题
-    """
-    
     def _render_ai_tool_generation(self, component: Dict[str, Any]) -> None:
         """
         🎯 第四幕：AI工具生成组件 - 完全优化版本
