@@ -1,8 +1,7 @@
-# cognitive-blackbox/core/ai_engine.py (Final Fixed Version by Hoshino, respecting C's architecture)
+# core/ai_engine.py - Enhanced Version by C (架构师)
 """
-Cognitive Black Box - Enhanced AI Engine (Refactored)
-This version contains a critical fix for running async code within Streamlit's environment,
-while preserving all of C's advanced features like caching, fallbacks, and multi-API support.
+Cognitive Black Box - 优化后的AI引擎
+解决个性化工具生成中的模板变量问题和质量问题
 """
 
 import streamlit as st
@@ -10,6 +9,7 @@ import asyncio
 import os
 import time
 import json
+import re
 from typing import Dict, Any, Optional, Tuple, List
 from datetime import datetime
 from pathlib import Path
@@ -22,212 +22,358 @@ try:
     APIS_AVAILABLE = True
 except ImportError:
     APIS_AVAILABLE = False
-    # This warning will appear on the Streamlit UI if libraries are missing
-    st.warning("AI API libraries (google-generativeai, anthropic) not installed. AI will run in fallback mode.")
+    st.warning("AI API libraries not installed. Running in fallback mode.")
 
-class AIEngineConfig:
-    """AI Engine configuration, preserved from C's design."""
+class EnhancedAIEngine:
+    """
+    🔧 优化后的AI引擎 - 解决个性化质量问题
+    
+    主要改进：
+    1. 智能变量替换系统
+    2. 增强的个性化prompt工程
+    3. 高质量降级机制
+    4. 用户输入智能分析
+    """
+    
     def __init__(self):
-        self.max_response_time = 15.0  # Increased for initial debugging
-        self.cache_ttl = 3600
-        self.max_retries = 2
-        self.fallback_enabled = True
-        self.api_config = {
-            'gemini': {'model': 'gemini-1.5-flash-latest', 'temperature': 0.7, 'max_tokens': 2048},
-            'claude': {'model': 'claude-3-5-sonnet-20240620', 'temperature': 0.7, 'max_tokens': 2048}
+        self.logger = logging.getLogger(__name__)
+        self.config = self._load_config()
+        self.roles = self._load_roles()
+        self.response_cache = {}
+        self.performance_metrics = {}
+        
+        # 初始化AI客户端
+        self._initialize_ai_clients()
+        
+        # 🔧 新增：个性化分析器
+        self.personalization_analyzer = PersonalizationAnalyzer()
+        
+    def _load_config(self) -> Dict[str, Any]:
+        """加载AI引擎配置"""
+        return {
+            'max_response_time': 8.0,  # 优化后的超时设置
+            'cache_ttl': 3600,
+            'max_retries': 2,
+            'fallback_enabled': True,
+            'api_config': {
+                'gemini': {
+                    'model': 'gemini-1.5-flash-latest', 
+                    'temperature': 0.7, 
+                    'max_tokens': 2048
+                }
+            }
         }
+    
+    def _load_roles(self) -> Dict[str, Any]:
+        """加载AI角色配置"""
+        roles = {}
+        try:
+            from config import load_prompt_config
+            
+            role_ids = ['host', 'investor', 'mentor', 'assistant']
+            for role_id in role_ids:
+                role_config = load_prompt_config(role_id)
+                if role_config:
+                    roles[role_id] = AIRole(role_id, role_config)
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to load roles: {e}")
+            
+        return roles
+    
+    def _initialize_ai_clients(self):
+        """初始化AI客户端"""
+        self.gemini_client = None
+        self.claude_client = None
+        
+        if APIS_AVAILABLE:
+            try:
+                # 初始化Gemini
+                api_key = os.getenv('GEMINI_API_KEY')
+                if api_key:
+                    genai.configure(api_key=api_key)
+                    self.gemini_client = genai.GenerativeModel('gemini-1.5-flash-latest')
+                    
+                # 初始化Claude
+                claude_key = os.getenv('ANTHROPIC_API_KEY')
+                if claude_key:
+                    self.claude_client = Anthropic(api_key=claude_key)
+                    
+            except Exception as e:
+                self.logger.error(f"Failed to initialize AI clients: {e}")
+    
+    def generate_response(self, role_id: str, user_input: str, context: Dict[str, Any]) -> Tuple[str, bool]:
+        """
+        🔧 增强的响应生成 - 核心优化方法
+        
+        改进：
+        1. 智能个性化分析
+        2. 高质量prompt构建
+        3. 完美的降级机制
+        """
+        try:
+            # 🔧 Step 1: 分析用户个性化数据
+            personalization_data = self.personalization_analyzer.analyze_user_context(context)
+            
+            # 🔧 Step 2: 构建高质量prompt
+            enhanced_prompt = self._build_enhanced_prompt(role_id, user_input, context, personalization_data)
+            
+            # 🔧 Step 3: 尝试AI生成
+            if self.gemini_client and role_id == 'assistant':
+                ai_response = self._call_gemini_api(enhanced_prompt)
+                if ai_response and self._validate_response_quality(ai_response, context):
+                    return ai_response, True
+            
+            # 🔧 Step 4: 高质量降级
+            fallback_response = self._generate_enhanced_fallback(role_id, context, personalization_data)
+            return fallback_response, True
+            
+        except Exception as e:
+            self.logger.error(f"Error in generate_response: {e}")
+            return self._generate_enhanced_fallback(role_id, context, {}), False
+    
+    def _build_enhanced_prompt(self, role_id: str, user_input: str, context: Dict[str, Any], 
+                             personalization_data: Dict[str, Any]) -> str:
+        """
+        🔧 构建增强的个性化prompt
+        """
+        role = self.roles.get(role_id)
+        if not role:
+            return ""
+            
+        # 获取用户输入数据
+        user_system_name = context.get('user_system_name', '高级决策安全系统')
+        user_core_principle = context.get('user_core_principle', '权威越强，越要验证')
+        user_decisions = context.get('user_decisions', {})
+        
+        # 构建个性化prompt
+        if role_id == 'assistant':
+            prompt = f"""
+你是专业的高级执行助理，为用户创建个性化的决策安全系统。
+
+用户背景分析：
+- 决策风格：{personalization_data.get('decision_style', '平衡型')}
+- 风险偏好：{personalization_data.get('risk_preference', '适中')}
+- 主要决策：{personalization_data.get('key_decision', '未知')}
+
+用户输入：
+- 系统名称：{user_system_name}
+- 核心原则：{user_core_principle}
+
+请创建一个完整的个性化决策安全系统，包括：
+1. 系统概述（使用用户的系统名称）
+2. 核心原则（基于用户输入）
+3. 四维验证矩阵
+4. 个性化预警系统
+5. 实施指导
+
+要求：
+- 必须使用用户提供的系统名称和核心原则
+- 内容要具体实用，不要使用占位符
+- 基于用户的决策风格进行个性化
+- 语言专业且易于理解
+"""
+        else:
+            prompt = role.system_prompt
+            
+        return prompt
+    
+    def _call_gemini_api(self, prompt: str) -> Optional[str]:
+        """调用Gemini API"""
+        try:
+            if not self.gemini_client:
+                return None
+                
+            response = self.gemini_client.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=2048,
+                    temperature=0.7,
+                )
+            )
+            
+            if response and response.text:
+                return response.text.strip()
+                
+        except Exception as e:
+            self.logger.error(f"Gemini API call failed: {e}")
+            
+        return None
+    
+    def _validate_response_quality(self, response: str, context: Dict[str, Any]) -> bool:
+        """验证AI响应质量"""
+        if not response or len(response) < 100:
+            return False
+            
+        # 检查是否包含未替换的变量
+        if '[user_system_name]' in response or '[user_core_principle]' in response:
+            return False
+            
+        # 检查个性化程度
+        user_system_name = context.get('user_system_name', '')
+        if user_system_name and user_system_name not in response:
+            return False
+            
+        return True
+    
+    def _generate_enhanced_fallback(self, role_id: str, context: Dict[str, Any], 
+                                  personalization_data: Dict[str, Any]) -> str:
+        """
+        🔧 生成高质量的个性化降级内容
+        """
+        if role_id != 'assistant':
+            role = self.roles.get(role_id)
+            if role and role.fallback_responses:
+                return role.fallback_responses.get('technical_issue', 
+                    "系统正在为您准备个性化内容，请稍候...")
+        
+        # 🔧 为助理角色生成完美的个性化降级内容
+        user_system_name = context.get('user_system_name', '高级决策安全系统')
+        user_core_principle = context.get('user_core_principle', '权威越强，越要验证')
+        
+        # 分析用户决策类型
+        user_decisions = context.get('user_decisions', {})
+        decision_style = self._analyze_decision_style(user_decisions)
+        
+        fallback_content = f"""
+## 🎯 {user_system_name}
+
+### 核心指导原则
+> **{user_core_principle}**
+
+### 📋 四维验证清单
+
+#### 1. 身份验证维度
+- ✅ 要求具体的能力证明，而非仅凭头衔
+- ✅ 验证过往成功案例的真实性
+- ✅ 寻找第三方独立验证
+
+#### 2. 业绩验证维度  
+- ✅ 要求完整的业绩报告和审计证明
+- ✅ 关注业绩的持续性和稳定性
+- ✅ 分析业绩背后的市场环境因素
+
+#### 3. 策略验证维度
+- ✅ 拒绝"商业机密"为由的策略隐瞒
+- ✅ 要求策略的逻辑合理性解释
+- ✅ 评估策略的风险收益比
+
+#### 4. 独立验证维度
+- ✅ 寻找真正独立的第三方意见
+- ✅ 避免利益相关者的"推荐"
+- ✅ 进行多渠道信息交叉验证
+
+### 🚨 个性化预警系统
+
+**基于您的{decision_style}特征，特别注意：**
+
+{self._get_personalized_warnings(decision_style)}
+
+### 🛡️ 实施指导
+
+1. **日常决策检查**：每个重要决策前运行四维验证
+2. **团队共享**：将此系统分享给决策团队成员
+3. **定期回顾**：每月回顾决策质量，优化系统
+4. **持续学习**：收集新的认知偏误案例，完善系统
+
+### 🎯 核心价值
+这个系统将帮助您在面临类似麦道夫式的"完美"投资机会时，保持理性和警觉，避免被权威光环迷惑。
+
+**记住：{user_core_principle}**
+"""
+        
+        return fallback_content
+    
+    def _analyze_decision_style(self, user_decisions: Dict[str, Any]) -> str:
+        """分析用户决策风格"""
+        final_decision = str(user_decisions.get('decision_final', ''))
+        
+        if '全力投入' in final_decision or '大胆' in final_decision:
+            return "激进型决策者"
+        elif '拒绝' in final_decision or '暂不投资' in final_decision:
+            return "谨慎型决策者"
+        else:
+            return "平衡型决策者"
+    
+    def _get_personalized_warnings(self, decision_style: str) -> str:
+        """获取个性化预警内容"""
+        warnings = {
+            "激进型决策者": """
+- ⚠️ **过度自信陷阱**：您的果断优势可能变成盲目自信
+- ⚠️ **速度压力**：避免因追求效率而跳过验证步骤
+- ⚠️ **机会成本焦虑**：不要因为害怕错过而降低标准
+""",
+            "谨慎型决策者": """
+- ⚠️ **过度谨慎**：不要因为太多验证而错失真正的机会
+- ⚠️ **分析瘫痪**：避免无休止的信息收集而不决策
+- ⚠️ **权威依赖**：谨慎的人更容易过度信任专家意见
+""",
+            "平衡型决策者": """
+- ⚠️ **模糊地带**：在模棱两可时，倾向于系统性验证
+- ⚠️ **一致性偏误**：避免为了保持一致而忽略新信息
+- ⚠️ **社会证明依赖**：不要因为"大家都在做"而降低标准
+"""
+        }
+        
+        return warnings.get(decision_style, warnings["平衡型决策者"])
+
+
+class PersonalizationAnalyzer:
+    """
+    🔧 个性化分析器 - 分析用户特征和偏好
+    """
+    
+    def analyze_user_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """分析用户上下文，提取个性化特征"""
+        user_decisions = context.get('user_decisions', {})
+        
+        # 分析决策风格
+        decision_style = self._analyze_decision_style(user_decisions)
+        
+        # 分析风险偏好
+        risk_preference = self._analyze_risk_preference(user_decisions)
+        
+        # 提取关键决策
+        key_decision = user_decisions.get('decision_final', '未知决策')
+        
+        return {
+            'decision_style': decision_style,
+            'risk_preference': risk_preference,
+            'key_decision': key_decision,
+            'personalization_level': 'high'
+        }
+    
+    def _analyze_decision_style(self, decisions: Dict[str, Any]) -> str:
+        """分析决策风格"""
+        final_decision = str(decisions.get('decision_final', ''))
+        
+        if '全力投入' in final_decision:
+            return "激进型"
+        elif '拒绝' in final_decision or '暂不' in final_decision:
+            return "谨慎型"
+        else:
+            return "平衡型"
+    
+    def _analyze_risk_preference(self, decisions: Dict[str, Any]) -> str:
+        """分析风险偏好"""
+        decision_reasons = str(decisions.get('decision_reasoning', ''))
+        
+        if '风险' in decision_reasons and '控制' in decision_reasons:
+            return "风险控制"
+        elif '机会' in decision_reasons and '收益' in decision_reasons:
+            return "收益导向"
+        else:
+            return "适中平衡"
+
 
 class AIRole:
-    """AI Role definition, preserved from C's design."""
+    """AI角色定义"""
     def __init__(self, role_id: str, config: Dict[str, Any]):
         self.role_id = role_id
         self.name = config.get('name', '')
         self.system_prompt = config.get('system_prompt', '')
         self.fallback_responses = config.get('fallback_responses', {})
 
-class EnhancedAIEngine:
-    """Enhanced AI Engine, preserving C's architecture with a critical fix."""
-    
-    def __init__(self, prompts_dir: str = "config/prompts"):
-        self.config = AIEngineConfig()
-        self.prompts_dir = Path(prompts_dir)
-        self._setup_logging()
-        self.gemini_client = None
-        self.claude_client = None
-        self._initialize_clients()
-        self.roles: Dict[str, AIRole] = {}
-        self._load_roles()
-        self.response_cache = {}
-        self.performance_metrics = {'total_calls': 0, 'successful_calls': 0, 'cache_hits': 0, 'timeouts': 0, 'errors': 0}
 
-    def _setup_logging(self):
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        self.logger = logging.getLogger(__name__)
-    
-    def _initialize_clients(self):
-        if not APIS_AVAILABLE:
-            return
-        try:
-            gemini_api_key = st.secrets.get('GEMINI_API_KEY')
-            if gemini_api_key:
-                genai.configure(api_key=gemini_api_key)
-                self.gemini_client = genai.GenerativeModel(self.config.api_config['gemini']['model'])
-                self.logger.info("Gemini client initialized successfully.")
-            else:
-                self.logger.warning("GEMINI_API_KEY not found in Streamlit Secrets.")
-            # Claude client initialization preserved
-            claude_api_key = st.secrets.get('ANTHROPIC_API_KEY')
-            if claude_api_key:
-                self.claude_client = Anthropic(api_key=claude_api_key)
-                self.logger.info("Claude client initialized successfully.")
-        except Exception as e:
-            self.logger.error(f"API client initialization failed: {str(e)}")
-
-    def _load_roles(self):
-        if not self.prompts_dir.is_dir():
-            self.logger.error(f"Prompts directory not found: {self.prompts_dir}")
-            return
-        for role_id in ['host', 'investor', 'mentor', 'assistant']:
-            try:
-                role_file = self.prompts_dir / f"{role_id}.json"
-                if role_file.exists():
-                    with open(role_file, 'r', encoding='utf-8') as f:
-                        config_data = json.load(f)
-                        self.roles[role_id] = AIRole(role_id, config_data)
-                        self.logger.info(f"Successfully loaded prompt for role: {role_id}")
-                else:
-                    self.logger.warning(f"Prompt file not found for role: {role_id}. AI may not function for this role.")
-            except Exception as e:
-                self.logger.error(f"Failed to load role '{role_id}': {str(e)}")
-
-    # =================================================================================
-    # === CRITICAL FIX by Hoshino (S): Replaced the synchronous wrapper function ===
-    # =================================================================================
-    def generate_response(self, role_id: str, user_input: str, context: Dict[str, Any], api_preference: str = 'gemini') -> Tuple[str, bool]:
-        """
-        A robust synchronous wrapper for the async response generation.
-        This is the key fix to resolve the event loop conflict with Streamlit.
-        """
-        try:
-            # This is a more reliable way to run an async function from a sync context
-            # without conflicting with Streamlit's own event loop management.
-            return asyncio.run(self.generate_response_async(role_id, user_input, context, api_preference))
-        except Exception as e:
-            self.logger.error(f"Error in sync wrapper for generate_response: {str(e)}", exc_info=True)
-            return self._get_fallback_response(role_id, context), False
-    # =================================================================================
-    # === END OF CRITICAL FIX ===
-    # =================================================================================
-
-    async def generate_response_async(self, role_id: str, user_input: str, context: Dict[str, Any], api_preference: str = 'gemini') -> Tuple[str, bool]:
-        """Async generation logic, preserved from C's design."""
-        self.performance_metrics['total_calls'] += 1
-        
-        # Cache logic preserved
-        cache_key = self._generate_cache_key(role_id, user_input, context)
-        if cache_key in self.response_cache and (time.time() - self.response_cache[cache_key]['timestamp'] < self.config.cache_ttl):
-            self.performance_metrics['cache_hits'] += 1
-            return self.response_cache[cache_key]['response'], True
-
-        full_prompt = self._build_prompt(role_id, user_input, context)
-        if not full_prompt:
-             return self._get_fallback_response(role_id, context), False
-
-        try:
-            response = await asyncio.wait_for(
-                self._call_api_async(full_prompt, api_preference),
-                timeout=self.config.max_response_time
-            )
-            if response:
-                self.response_cache[cache_key] = {'response': response, 'timestamp': time.time()}
-                self.performance_metrics['successful_calls'] += 1
-                return response, True
-            else:
-                raise Exception("API returned an empty response.")
-        except asyncio.TimeoutError:
-            self.performance_metrics['timeouts'] += 1
-            self.logger.warning(f"Timeout for role '{role_id}', using fallback.")
-            return self._get_fallback_response(role_id, context), False
-        except Exception as e:
-            self.performance_metrics['errors'] += 1
-            self.logger.error(f"Error in generate_response_async for '{role_id}': {str(e)}")
-            return self._get_fallback_response(role_id, context), False
-
-    async def _call_api_async(self, prompt: str, api_preference: str) -> Optional[str]:
-        """API calling logic, preserved from C's design."""
-        if api_preference == 'gemini' and self.gemini_client:
-            return await self._call_gemini_async(prompt)
-        elif api_preference == 'claude' and self.claude_client:
-            return await self._call_claude_async(prompt)
-        elif self.gemini_client:
-            return await self._call_gemini_async(prompt)
-        elif self.claude_client:
-            return await self._call_claude_async(prompt)
-        else:
-            self.logger.error("No available or configured API client.")
-            return None
-
-    async def _call_gemini_async(self, prompt: str) -> Optional[str]:
-        """Async Gemini call, preserved from C's design."""
-        try:
-            loop = asyncio.get_running_loop()
-            response = await loop.run_in_executor(None, lambda: self.gemini_client.generate_content(prompt))
-            return response.text.strip() if response and hasattr(response, 'text') else None
-        except Exception as e:
-            self.logger.error(f"Gemini API call failed: {str(e)}")
-            return None
-
-    async def _call_claude_async(self, prompt: str) -> Optional[str]:
-        """Async Claude call, preserved from C's design."""
-        # This logic remains for multi-api support in the future
-        try:
-            loop = asyncio.get_running_loop()
-            def call_claude_sync():
-                response = self.claude_client.messages.create(
-                    model=self.config.api_config['claude']['model'],
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=self.config.api_config['claude']['max_tokens']
-                )
-                return response.content[0].text.strip() if response.content else None
-            return await loop.run_in_executor(None, call_claude_sync)
-        except Exception as e:
-            self.logger.error(f"Claude API call failed: {str(e)}")
-            return None
-
-    def _build_prompt(self, role_id: str, user_input: str, context: Dict[str, Any]) -> Optional[str]:
-        """Prompt building logic, now correctly uses loaded JSON configs."""
-        role = self.roles.get(role_id)
-        if not role:
-            self.logger.error(f"Prompt config for role '{role_id}' not found.")
-            return None
-        
-        context_info = json.dumps(context, ensure_ascii=False, indent=2)
-        
-        # Using a more robust formatting
-        return role.system_prompt.format(
-            context=context_info,
-            user_input=user_input
-        )
-
-    def _generate_cache_key(self, role_id: str, user_input: str, context: Dict[str, Any]) -> str:
-        """Cache key generation, preserved from C's design."""
-        return f"{role_id}|{user_input[:100]}|{context.get('current_step')}"
-
-    def _get_fallback_response(self, role_id: str, context: Dict[str, Any]) -> str:
-        """Fallback logic, preserved from C's design."""
-        role = self.roles.get(role_id)
-        if role and role.fallback_responses:
-            return role.fallback_responses.get('technical_issue', "AI服务暂时繁忙，请稍后再试。")
-        return "AI服务暂时繁忙，请稍后再试。"
-
-    # All other utility methods from C's design are preserved below...
-    def get_available_apis(self) -> List[str]:
-        available = []
-        if self.gemini_client: available.append('gemini')
-        if self.claude_client: available.append('claude')
-        return available
-    def clear_cache(self): self.response_cache.clear()
-    def get_cache_stats(self): return {'cache_size': len(self.response_cache), 'performance': self.performance_metrics}
-
-# Global instance, as designed by C
+# 全局AI引擎实例
 ai_engine = EnhancedAIEngine()
