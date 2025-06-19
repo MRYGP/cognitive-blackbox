@@ -1126,16 +1126,6 @@ class ComponentRenderer:
 生成时间：{time.strftime('%Y-%m-%d %H:%M:%S')}
 来源：认知黑匣子 - 个性化决策系统
         """
-
-
-# 🔧 集成到现有组件渲染器中的方法
-def integrate_enhanced_tool_generation():
-    """
-    集成增强的AI工具生成功能到现有组件渲染器
-    """
-    # 这个函数用于将增强的_render_ai_tool_generation方法
-    # 集成到现有的ComponentRenderer类中
-    pass
     def _render_perfect_personalized_system(self, system_name: str, core_principle: str, user_type: str, risk_advice: str, special_warning: str) -> None:
         """🔧 渲染完美的个性化系统，确保无任何技术占位符"""
         
