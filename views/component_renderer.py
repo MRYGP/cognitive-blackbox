@@ -5,6 +5,7 @@ Cognitive Black Box - Component-Based Renderer (Emergency Fixed Version)
 
 import streamlit as st
 import asyncio
+import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from core.ai_engine import ai_engine
@@ -1192,9 +1193,10 @@ class ComponentRenderer:
         }
         
         return warnings.get(decision_style, warnings["平衡型决策者"])
-        """
+
+    """
     def _render_perfect_personalized_system(self, system_name: str, core_principle: str, user_type: str, risk_advice: str, special_warning: str) -> None:
-        """🔧 渲染完美的个性化系统，确保无任何技术占位符"""
+        \"\"\"🔧 渲染完美的个性化系统，确保无任何技术占位符\"\"\"
         
         # 根据核心原则确定重点领域
         if '权威' in core_principle:
@@ -1206,7 +1208,7 @@ class ComponentRenderer:
         else:
             focus_area = "综合验证"
         
-        personalized_content = f"""
+        personalized_content = f\"\"\"
 #### 🔍 {system_name} - 核心验证清单
 
 **专为{user_type}设计** | {risk_advice}
@@ -1250,14 +1252,14 @@ class ComponentRenderer:
 ---
 **{system_name}** | 核心原则: {core_principle} | 适用类型: {user_type}
 ---
-"""
+\"\"\"
         
         st.markdown(personalized_content)
         
         # 下载功能 - 确保所有变量都正确替换
         col1, col2 = st.columns(2)
         with col1:
-            download_content = f"""# {system_name}
+            download_content = f\"\"\"# {system_name}
 
 **核心原则**: {core_principle}
 **决策类型**: {user_type}
@@ -1308,7 +1310,7 @@ class ComponentRenderer:
 - 专注领域: {focus_area}
 
 使用此工具，让每个决策都经过科学验证！
-"""
+\"\"\"
             st.download_button(
                 label="📥 下载完整系统 (Markdown)",
                 data=download_content,
@@ -1317,7 +1319,7 @@ class ComponentRenderer:
                 use_container_width=True
             )
         with col2:
-            checklist = f"""{system_name} - 快速检查清单
+            checklist = f\"\"\"{system_name} - 快速检查清单
 
 决策类型: {user_type}
 核心原则: {core_principle}
@@ -1333,7 +1335,7 @@ class ComponentRenderer:
 特别提醒: {special_warning}
 
 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}
-"""
+\"\"\"
             st.download_button(
                 label="📋 下载检查清单 (TXT)", 
                 data=checklist,
@@ -1343,7 +1345,8 @@ class ComponentRenderer:
             )
         
         st.success("💡 **建议**：请将这套系统保存到您的手机或电脑中，在下次面临重要决策时立即使用！")
-    
+    """
+
     def _render_static_tool_template(self, component: Dict[str, Any]) -> None:
         """Render static tool template component"""
         st.subheader(component.get('title', '通用工具模板'))
