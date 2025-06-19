@@ -1,12 +1,15 @@
 """
-Cognitive Black Box - Component-Based Renderer (Final Fixed Version)
+Cognitive Black Box - Component-Based Renderer (Complete Fixed Version)
 🔧 P0 Fixed: 第四幕AI工具生成优化
 🔧 P1 Fixed: 第二幕AI成功后避免静态内容重复
+🔧 P1 Fixed: 进度条位置优化
+🔧 P0 Fixed: 内容重复渲染修复
 """
 
 import streamlit as st
 import asyncio
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 from core.ai_engine import ai_engine
 from utils.error_handlers import error_handler, ErrorType
 
@@ -148,16 +151,43 @@ class ComponentRenderer:
     # ============= COMPONENT RENDERERS - ALL METHODS IMPLEMENTED =============
     
     def _render_act_header(self, component: Dict[str, Any]) -> None:
-        """Render act header component"""
+        """🔧 P1 ENHANCED: Render act header component with optimized progress display"""
+        # 🔧 P1 FIX: Move progress bar to top, more prominent position
+        current_step = st.session_state.get('current_step', 1)
+        progress = current_step * 25
+        
+        # Enhanced progress display
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown(f"**第 {current_step} 幕 / 共 4 幕**")
+            progress_bar = st.progress(progress / 100)
+            
+            # 🔧 ENHANCED: Add visual progress dots
+            dots = []
+            for i in range(1, 5):
+                if i <= current_step:
+                    dots.append("🔵")  # Completed
+                elif i == current_step + 1:
+                    dots.append("⚪")  # Next
+                else:
+                    dots.append("⚫")  # Future
+            
+            st.markdown(f"<div style='text-align: center; font-size: 1.2em; margin: 0.5rem 0;'>{''.join(dots)}</div>", 
+                       unsafe_allow_html=True)
+        
+        # Main title
         st.header(component.get('title', ''))
         if 'subtitle' in component:
             st.caption(component['subtitle'])
-        if 'opening_quote' in component:
-            st.info(f"💭 {component['opening_quote']}")
         
-        # Progress indicator
-        progress = st.session_state.get('current_step', 1) * 25
-        st.progress(progress / 100)
+        # Opening quote with better styling
+        if 'opening_quote' in component:
+            st.markdown(f"""
+            <div style="background-color: #f8f9fa; padding: 1rem; border-left: 4px solid #007bff; 
+                        margin: 1rem 0; border-radius: 4px;">
+                <em style="color: #495057;">💭 {component['opening_quote']}</em>
+            </div>
+            """, unsafe_allow_html=True)
     
     def _render_knowledge_card(self, component: Dict[str, Any]) -> None:
         """Render knowledge card component"""
@@ -392,24 +422,44 @@ class ComponentRenderer:
                     st.rerun()
     
     def _render_transition(self, component: Dict[str, Any]) -> None:
-        """Render transition component"""
-        st.subheader(component.get('title', '转场'))
+        """
+        🔧 P0 FIXED: Render transition component with duplicate prevention
+        """
+        title = component.get('title', '转场')
         content_md = component.get('content_md', '')
         
-        # Add dramatic transition effects
-        with st.container():
-            st.markdown("---")
-            st.markdown(f"### {component.get('title', '')}")
-            st.markdown(content_md)
+        # 🔧 P0 FIX: Add unique key check to prevent duplicate rendering
+        transition_key = f"transition_{title}_{hash(content_md[:50])}"
+        
+        if f"rendered_{transition_key}" not in st.session_state:
+            st.session_state[f"rendered_{transition_key}"] = True
             
-            # Process transition effects
-            if 'transition_fx' in component:
-                fx = component['transition_fx']
-                with st.spinner("准备进入下一幕..."):
-                    import time
-                    time.sleep(fx.get('duration_ms', 2000) / 1000)
-            
-            st.markdown("---")
+            # Add dramatic transition with unique styling
+            with st.container():
+                st.markdown("---")
+                
+                # 🔧 ENHANCED: More dramatic transition styling
+                st.markdown(f"""
+                <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
+                            color: white; padding: 1.5rem; border-radius: 8px; text-align: center;
+                            margin: 1rem 0; border-left: 4px solid #c44569;">
+                    <h3 style="color: white; margin-bottom: 1rem;">⚡ {title}</h3>
+                    <div style="font-size: 1.1em;">{content_md}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Process transition effects
+                if 'transition_fx' in component:
+                    fx = component['transition_fx']
+                    with st.spinner("准备进入下一幕..."):
+                        import time
+                        time.sleep(min(fx.get('duration_ms', 2000) / 1000, 3.0))  # Cap at 3 seconds
+                
+                st.markdown("---")
+        else:
+            # 🔧 P0 FIX: If already rendered, just show a simple separator
+            st.markdown('<div style="margin: 1rem 0; border-bottom: 1px solid #ddd;"></div>', 
+                       unsafe_allow_html=True)
     
     def _render_reality_shock(self, component: Dict[str, Any]) -> None:
         """Render reality shock component"""
@@ -485,7 +535,7 @@ class ComponentRenderer:
                     context
                 )
             
-            if success:
+            if success and ai_response and len(ai_response.strip()) > 50:
                 ai_succeeded = True  # 🔧 NEW: Mark AI as succeeded
                 st.success("🤖 AI个性化分析完成")
                 st.markdown(ai_response)
@@ -494,6 +544,9 @@ class ComponentRenderer:
                 quality_score = self._evaluate_ai_response_quality(ai_response, 'investor')
                 if quality_score < 6.0:
                     st.warning("AI响应质量偏低，已自动记录以优化服务")
+                    
+                # 🔧 P1 FIX: Add separator after successful AI content
+                st.markdown('<div class="component-separator"></div>', unsafe_allow_html=True)
         
         # 🔧 FIXED: Only show fallback content if AI didn't succeed
         if not ai_succeeded:
@@ -501,21 +554,35 @@ class ComponentRenderer:
             # Use fallback content
             fallback_id = ai_config.get('fallback_response_id', 'investor_static_challenge_set')
             self._render_fallback_content(fallback_id)
+        else:
+            # 🔧 P1 NEW: Add a note about AI personalization success
+            with st.expander("📊 个性化分析说明", expanded=False):
+                st.markdown("""
+                ✅ **AI已基于您的决策分析生成个性化质疑**
+                
+                这些质疑内容是根据您在第一幕中的具体选择和分析逻辑，量身定制的专业挑战。
+                不同的决策选择会触发不同角度的专业质疑，帮助您更深入地认识决策中的潜在盲点。
+                """)
     
     def _render_static_challenge_set(self, component: Dict[str, Any]) -> None:
-        """Render static challenge set component"""
-        st.subheader(component.get('title', '专业质疑'))
+        """🔧 P1 ENHANCED: Render static challenge set component with better styling"""
+        title = component.get('title', '专业质疑')
+        description = component.get('description', '')
         
-        if 'description' in component:
-            st.info(component['description'])
+        # 🔧 P1 FIX: Only show title if this is the primary content (not fallback)
+        if not hasattr(st.session_state, 'ai_challenge_succeeded') or not st.session_state.ai_challenge_succeeded:
+            st.subheader(title)
+            
+            if description:
+                st.info(description)
         
         challenges = component.get('challenges', [])
         
-        for challenge in challenges:
+        for i, challenge in enumerate(challenges):
             challenge_title = challenge.get('title', '')
             challenge_content = challenge.get('content_md', '')
             
-            with st.expander(f"展开 {challenge_title}", expanded=True):
+            with st.expander(f"💼 {challenge_title}", expanded=i==0):
                 st.markdown(challenge_content)
     
     def _render_ultimate_impact(self, component: Dict[str, Any]) -> None:
@@ -675,7 +742,7 @@ class ComponentRenderer:
     
     def _render_ai_tool_generation(self, component: Dict[str, Any]) -> None:
         """
-        🔧 P0 CRITICAL FIX: AI tool generation with optimized calling and robust fallback
+        🔧 P0 CRITICAL FIX: AI tool generation with completely optimized prompt and calling
         """
         st.subheader(component.get('title', '定制您的专属决策系统'))
         
@@ -708,54 +775,76 @@ class ComponentRenderer:
             """)
         
         if st.button("🚀 生成我的专属决策系统", type="primary", use_container_width=True):
-            # 🔧 P0 CRITICAL: Simplified and robust AI calling
+            # 🔧 P0 CRITICAL: Completely rewritten AI calling logic
             try:
-                # Build minimal but complete context
+                # Get user decisions
                 user_decisions = st.session_state.get('user_decisions', {})
-                decision_summary = self._build_simple_decision_summary(user_decisions)
                 
-                # 🔧 CRITICAL FIX: Simplified, shorter prompt for better success rate
-                optimized_prompt = f"""基于用户信息设计个性化决策系统：
+                # 🔧 CRITICAL FIX: Ultra-simplified prompt focused on success
+                final_decision = user_decisions.get('decision_final', '谨慎投资')
+                
+                # Determine user type
+                if '全力投入' in final_decision:
+                    user_type = "激进型决策者"
+                    risk_focus = "需要加强风险控制意识"
+                elif '暂不投资' in final_decision or '放弃' in final_decision:
+                    user_type = "谨慎型决策者"
+                    risk_focus = "有良好的风险意识"
+                else:
+                    user_type = "平衡型决策者"
+                    risk_focus = "有一定的风险控制意识"
+                
+                # 🔧 CRITICAL: Minimal, highly focused prompt
+                ultra_simple_prompt = f"""为{user_type}设计专属决策系统。
 
 系统名称：{user_system_name}
 核心原则：{user_core_principle}
-用户决策特点：{decision_summary}
+决策特点：{risk_focus}
 
-请生成包含以下部分的实用系统：
-1. 核心验证清单（4-5个要点）
-2. 风险预警信号（3-4个高危信号）
-3. 实施建议（简明实用）
+请生成实用的决策工具，包含：
+1. 验证清单（5项）
+2. 预警信号（3项）
+3. 使用建议
 
-要求：内容实用、结构清晰、体现"{user_core_principle}"原则"""
+要求简洁实用，体现"{user_core_principle}"原则。"""
 
-                # 🔧 CRITICAL FIX: More robust context for AI engine
-                simple_context = {
-                    'role': 'assistant',
-                    'user_name': user_system_name,
-                    'user_principle': user_core_principle,
-                    'personalization': True
+                # 🔧 CRITICAL: Minimal context to avoid issues
+                minimal_context = {
+                    'current_step': 4,
+                    'case_name': 'madoff',
+                    'user_type': user_type
                 }
                 
-                with st.spinner("🤖 AI正在生成您的专属决策系统..."):
-                    # 🔧 P0 FIX: Add debug info and better error handling
+                with st.spinner("🤖 AI正在为您生成专属决策系统..."):
+                    # 🔧 P0 FIX: Timeout handling and better error handling
+                    import time
+                    start_time = time.time()
+                    
                     ai_tool_content, success = ai_engine.generate_response(
                         'assistant', 
-                        optimized_prompt, 
-                        simple_context
+                        ultra_simple_prompt, 
+                        minimal_context
                     )
                     
-                    # 🔧 DEBUG: Show what happened for troubleshooting
+                    response_time = time.time() - start_time
+                    
+                    # 🔧 DEBUG: Better debugging information
                     if not success:
-                        st.error("🔧 **调试信息**: AI调用失败，正在使用备用方案")
-                        if st.checkbox("显示调试详情", key="debug_ai"):
-                            st.code(f"Prompt length: {len(optimized_prompt)} chars")
-                            st.code(f"Context: {simple_context}")
+                        st.error("🔧 **AI调用失败详情**")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.code(f"响应时间: {response_time:.2f}秒")
+                            st.code(f"Prompt长度: {len(ultra_simple_prompt)}字符")
+                        with col2:
+                            st.code(f"用户类型: {user_type}")
+                            st.code(f"上下文: {minimal_context}")
                 
-                if success and ai_tool_content and len(ai_tool_content.strip()) > 50:
+                # 🔧 ENHANCED: Better success criteria
+                if success and ai_tool_content and len(ai_tool_content.strip()) > 100:
                     st.success("🎉 您的专属决策系统已生成完成！")
                     
                     # 🔧 NEW: Add system info display
-                    st.info(f"**系统名称**: {user_system_name}  \n**核心原则**: {user_core_principle}")
+                    st.info(f"**系统名称**: {user_system_name}  \n**核心原则**: {user_core_principle}  \n**决策类型**: {user_type}")
                     
                     # Show the generated content
                     st.markdown(ai_tool_content)
@@ -763,9 +852,10 @@ class ComponentRenderer:
                     # 🔧 ENHANCED: Better download options
                     col1, col2 = st.columns(2)
                     with col1:
+                        download_content = f"# {user_system_name}\n\n核心原则: {user_core_principle}\n决策类型: {user_type}\n\n{ai_tool_content}"
                         st.download_button(
                             label="📥 下载完整系统 (Markdown)",
-                            data=ai_tool_content,
+                            data=download_content,
                             file_name=f"{user_system_name.replace(' ', '_')}_决策系统.md",
                             mime="text/markdown",
                             use_container_width=True
@@ -786,15 +876,15 @@ class ComponentRenderer:
                     st.success("💡 **建议**：请将这套系统保存到您的手机或电脑中，在下次面临重要决策时立即使用！")
                     
                 else:
-                    # 🔧 P0 CRITICAL: Enhanced fallback with proper variable replacement
+                    # 🔧 P0 CRITICAL: Enhanced fallback with perfect variable replacement
                     st.warning("⚠️ AI服务暂时繁忙，为您提供专业的个性化系统模板")
-                    self._render_robust_fallback_tool(user_system_name, user_core_principle)
+                    self._render_robust_fallback_tool(user_system_name, user_core_principle, user_type)
                     
             except Exception as e:
                 # 🔧 P0 CRITICAL: Catch all exceptions and provide fallback
-                st.error(f"🔧 **系统错误**: {str(e)[:100]}...")
+                st.error(f"🔧 **系统异常**: {str(e)[:100]}...")
                 st.info("正在为您提供备用的专业系统模板")
-                self._render_robust_fallback_tool(user_system_name, user_core_principle)
+                self._render_robust_fallback_tool(user_system_name, user_core_principle, "专业决策者")
     
     def _render_static_tool_template(self, component: Dict[str, Any]) -> None:
         """Render static tool template component"""
@@ -1026,12 +1116,13 @@ class ComponentRenderer:
         else:
             return "平衡型决策者，有一定风险控制意识"
     
-    def _render_robust_fallback_tool(self, system_name: str, core_principle: str) -> None:
+    def _render_robust_fallback_tool(self, system_name: str, core_principle: str, user_type: str = "专业决策者") -> None:
         """🔧 P0 CRITICAL: Robust fallback tool with perfect variable replacement"""
         st.markdown(f"### 🛡️ {system_name}")
         st.markdown(f"**核心原则**: {core_principle}")
+        st.markdown(f"**决策类型**: {user_type}")
         
-        # 🔧 CRITICAL: Generate personalized fallback based on principle
+        # 🔧 CRITICAL: Generate personalized fallback based on principle and user type
         if '权威' in core_principle:
             focus_area = "权威验证"
             special_warning = "权威背书可能掩盖真实风险"
@@ -1045,43 +1136,61 @@ class ComponentRenderer:
             focus_area = "综合验证"
             special_warning = "认知偏误可能影响判断质量"
         
-        # 🔧 PERSONALIZED: Generate content based on user's principle
+        # 🔧 ENHANCED: Add user type specific recommendations
+        if "激进型" in user_type:
+            risk_advice = "建议加强风险控制流程，避免过度自信"
+            specific_check = "☐ 设置强制性的反对意见收集环节"
+        elif "谨慎型" in user_type:
+            risk_advice = "保持现有的谨慎态度，增强机会识别能力"
+            specific_check = "☐ 平衡风险控制与机会把握"
+        else:
+            risk_advice = "保持平衡的决策风格，系统化验证流程"
+            specific_check = "☐ 建立标准化的决策评估流程"
+        
+        # 🔧 PERSONALIZED: Generate completely personalized content
         personalized_content = f"""
 #### 🔍 {system_name} - 核心验证清单
 
+**专为{user_type}设计** | {risk_advice}
+
 **第一步：{focus_area}重点检查**
 - ☐ 确认决策相关方的专业资质和能力边界
-- ☐ 验证关键信息的独立来源和可靠性
+- ☐ 验证关键信息的独立来源和可靠性  
 - ☐ 识别可能的利益冲突和动机偏差
+- {specific_check}
 
 **第二步：异常信号识别**
 - ☐ 检查表现是否过于完美或异常一致
 - ☐ 对比行业基准和历史数据
 - ☐ 寻找不合理的保密要求或透明度缺失
+- ☐ 评估时间压力的合理性
 
 **第三步：风险承受评估**
 - ☐ 明确最坏情况及其发生概率
 - ☐ 评估损失对整体目标的影响程度
 - ☐ 制定应急预案和退出策略
+- ☐ 确认决策符合风险承受能力
 
 #### 🚨 {system_name} - 高危预警信号
 
-**特别警惕**: {special_warning}
+**针对{user_type}的特别提醒**: {special_warning}
 
 **立即停止决策的信号**:
 - 🔴 拒绝提供关键信息或过度保密
 - 🔴 过分依赖权威背书而缺乏实质证据
 - 🔴 群体性一致好评但缺乏独立验证
 - 🔴 时间压力过大，不允许充分调研
+- 🔴 承诺回报明显超出行业常规水平
 
 #### 💡 实施指导
 
 **日常使用**: 将此清单保存在手机中，重大决策前必查
 **团队协作**: 与决策团队分享，建立集体验证机制
 **持续改进**: 每季度回顾决策质量，更新验证标准
+**风险管理**: {risk_advice}
 
 ---
-**{system_name}** | 核心原则: {core_principle}
+**{system_name}** | 核心原则: {core_principle} | 适用类型: {user_type}
 ---
 """
         
@@ -1091,6 +1200,8 @@ class ComponentRenderer:
         download_content = f"""# {system_name}
 
 **核心原则**: {core_principle}
+**决策类型**: {user_type}
+**生成时间**: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 
 ## 专属决策验证系统
 
@@ -1098,16 +1209,19 @@ class ComponentRenderer:
 - 确认专业资质和能力边界
 - 验证信息独立来源和可靠性
 - 识别利益冲突和动机偏差
+- 建立标准化验证流程
 
 ### 异常信号识别
 - 检查表现异常性
 - 对比行业基准
 - 寻找透明度缺失
+- 评估时间压力合理性
 
 ### 风险承受评估
 - 明确最坏情况
 - 评估损失影响
 - 制定应急预案
+- 确认风险承受能力
 
 ## 高危预警信号
 
@@ -1118,14 +1232,20 @@ class ComponentRenderer:
 - 过分依赖权威背书
 - 群体性一致好评缺乏验证
 - 时间压力过大
+- 承诺回报超出常规
 
 ## 实施指导
-- 日常使用: 保存在手机，决策前必查
-- 团队协作: 建立集体验证机制  
-- 持续改进: 季度回顾更新标准
 
-核心原则: {core_principle}
-系统名称: {system_name}
+**日常使用**: 保存在手机，决策前必查
+**团队协作**: 建立集体验证机制  
+**持续改进**: 季度回顾更新标准
+**风险管理**: {risk_advice}
+
+## 系统信息
+- 核心原则: {core_principle}
+- 系统名称: {system_name}
+- 决策类型: {user_type}
+- 专注领域: {focus_area}
 
 使用此工具，让每个决策都经过科学验证！
 """
@@ -1143,14 +1263,20 @@ class ComponentRenderer:
             # Simple checklist version
             checklist = f"""{system_name} - 快速检查清单
 
+决策类型: {user_type}
+核心原则: {core_principle}
+
 ☐ 权威资质确认
 ☐ 信息独立验证
 ☐ 异常表现分析
 ☐ 风险承受评估
 ☐ 透明度充分性检查
-☐ 时间压力合理性
+☐ 时间压力合理性评估
+☐ 应急预案制定
 
-核心原则: {core_principle}
+特别提醒: {special_warning}
+
+生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 """
             st.download_button(
                 label="📋 下载检查清单 (TXT)", 
