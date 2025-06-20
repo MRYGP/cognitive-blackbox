@@ -57,7 +57,7 @@ class EnhancedAIEngine:
             'fallback_enabled': True,
             'api_config': {
                 'gemini': {
-                    'model': 'gemini-1.5-flash-latest', 
+                    'model': 'gemini-2.5-pro', 
                     'temperature': 0.7, 
                     'max_tokens': 2048
                 }
@@ -92,7 +92,7 @@ class EnhancedAIEngine:
                 api_key = os.getenv('GEMINI_API_KEY')
                 if api_key:
                     genai.configure(api_key=api_key)
-                    self.gemini_client = genai.GenerativeModel('gemini-1.5-flash-latest')
+                    self.gemini_client = genai.GenerativeModel('gemini-2.5-pro')
                     
                 # 初始化Claude
                 claude_key = os.getenv('ANTHROPIC_API_KEY')
