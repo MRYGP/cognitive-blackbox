@@ -1,0 +1,332 @@
+/*
+ * LTCM "Quant Green" Theme by Chroma-V
+ * Apply this class to the body or main container when LTCM case is active
+ */
+
+.theme-ltcm {
+  /* 全局变量定义 */
+  --ltcm-primary-color: #00FF41;      /* 量化绿 */
+  --ltcm-bg-color: #0A141A;           /* 极深的蓝黑背景 */
+  --ltcm-text-color: #E0E0E0;         /* 略带灰度的白色文字，避免过于刺眼 */
+  --ltcm-font-family: 'Roboto Mono', monospace;
+  --ltcm-secondary-color: #00CC33;    /* 深绿作为次要色彩 */
+  --ltcm-accent-color: #33FF66;       /* 亮绿作为强调色 */
+  --ltcm-warning-color: #FFD700;      /* 金色警告 */
+  --ltcm-danger-color: #FF4444;       /* 红色危险 */
+}
+
+/* 全局背景和文字 */
+.theme-ltcm {
+  background-color: var(--ltcm-bg-color);
+  color: var(--ltcm-text-color);
+  font-family: var(--ltcm-font-family);
+}
+
+/* 标题样式 */
+.theme-ltcm h1, 
+.theme-ltcm h2, 
+.theme-ltcm h3 {
+  color: var(--ltcm-primary-color);
+  font-family: var(--ltcm-font-family);
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.theme-ltcm h1 {
+  font-size: 2.5rem;
+  border-bottom: 2px solid var(--ltcm-primary-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.theme-ltcm h2 {
+  font-size: 1.8rem;
+  margin: 2rem 0 1rem 0;
+}
+
+.theme-ltcm h3 {
+  font-size: 1.3rem;
+  margin: 1.5rem 0 0.8rem 0;
+}
+
+/* 段落和列表 */
+.theme-ltcm p, 
+.theme-ltcm li {
+  color: var(--ltcm-text-color);
+  font-family: var(--ltcm-font-family);
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.theme-ltcm ul, 
+.theme-ltcm ol {
+  margin-left: 1.5rem;
+}
+
+.theme-ltcm li {
+  margin-bottom: 0.5rem;
+}
+
+/* 按钮样式 */
+.theme-ltcm .stButton > button {
+  border: 2px solid var(--ltcm-primary-color);
+  color: var(--ltcm-primary-color);
+  background-color: transparent;
+  font-family: var(--ltcm-font-family);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.theme-ltcm .stButton > button:hover {
+  background-color: var(--ltcm-primary-color);
+  color: var(--ltcm-bg-color);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+  transform: translateY(-2px);
+}
+
+.theme-ltcm .stButton > button:active {
+  transform: translateY(0);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+}
+
+/* 信息框和警告框 */
+.theme-ltcm [data-testid="stAlert"] {
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  background-color: rgba(0, 255, 65, 0.08);
+  color: var(--ltcm-text-color);
+  font-family: var(--ltcm-font-family);
+}
+
+.theme-ltcm [data-testid="stAlert"] > div {
+  color: var(--ltcm-text-color) !important;
+}
+
+/* 输入框样式 */
+.theme-ltcm .stTextInput > div > div > input,
+.theme-ltcm .stTextArea > div > div > textarea,
+.theme-ltcm .stSelectbox > div > div > select {
+  background-color: rgba(0, 255, 65, 0.1);
+  border: 1px solid var(--ltcm-secondary-color);
+  color: var(--ltcm-text-color);
+  font-family: var(--ltcm-font-family);
+}
+
+.theme-ltcm .stTextInput > div > div > input:focus,
+.theme-ltcm .stTextArea > div > div > textarea:focus {
+  border-color: var(--ltcm-primary-color);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+/* 侧边栏样式 */
+.theme-ltcm .css-1d391kg {
+  background-color: rgba(10, 20, 26, 0.95);
+  border-right: 1px solid var(--ltcm-secondary-color);
+}
+
+/* 容器和角色特定样式 */
+.theme-ltcm .role-container {
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--ltcm-secondary-color);
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 65, 0.05) 0%, 
+    rgba(10, 20, 26, 0.95) 100%);
+  box-shadow: 0 8px 32px rgba(0, 255, 65, 0.1);
+}
+
+.theme-ltcm .role-host {
+  border-left: 6px solid var(--ltcm-primary-color);
+}
+
+.theme-ltcm .role-investor {
+  border-left: 6px solid var(--ltcm-danger-color);
+  background: linear-gradient(135deg, 
+    rgba(255, 68, 68, 0.08) 0%, 
+    rgba(10, 20, 26, 0.95) 100%);
+}
+
+.theme-ltcm .role-mentor {
+  border-left: 6px solid var(--ltcm-accent-color);
+  background: linear-gradient(135deg, 
+    rgba(51, 255, 102, 0.05) 0%, 
+    rgba(10, 20, 26, 0.95) 100%);
+}
+
+.theme-ltcm .role-assistant {
+  border-left: 6px solid var(--ltcm-warning-color);
+  background: linear-gradient(135deg, 
+    rgba(255, 215, 0, 0.08) 0%, 
+    rgba(10, 20, 26, 0.95) 100%);
+}
+
+/* 数据表格样式 */
+.theme-ltcm table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-family: var(--ltcm-font-family);
+}
+
+.theme-ltcm table th,
+.theme-ltcm table td {
+  border: 1px solid var(--ltcm-secondary-color);
+  padding: 0.8rem;
+  text-align: left;
+  color: var(--ltcm-text-color);
+}
+
+.theme-ltcm table th {
+  background-color: rgba(0, 255, 65, 0.1);
+  color: var(--ltcm-primary-color);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.theme-ltcm table tr:nth-child(even) {
+  background-color: rgba(0, 255, 65, 0.03);
+}
+
+.theme-ltcm table tr:hover {
+  background-color: rgba(0, 255, 65, 0.08);
+  transition: background-color 0.2s ease;
+}
+
+/* 代码块样式（如果需要显示代码或数据） */
+.theme-ltcm code {
+  background-color: rgba(0, 255, 65, 0.1);
+  border: 1px solid var(--ltcm-secondary-color);
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+  font-family: var(--ltcm-font-family);
+  color: var(--ltcm-primary-color);
+}
+
+.theme-ltcm pre {
+  background-color: rgba(0, 255, 65, 0.08);
+  border: 1px solid var(--ltcm-secondary-color);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: var(--ltcm-font-family);
+  color: var(--ltcm-text-color);
+}
+
+/* 魔法时刻：模拟终端打印效果 */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--ltcm-primary-color); }
+}
+
+.theme-ltcm .typewriter-effect {
+  overflow: hidden;
+  border-right: 0.15em solid var(--ltcm-primary-color);
+  white-space: nowrap;
+  animation: 
+    typing 3.5s steps(40, end) forwards,
+    blink-caret 0.75s step-end infinite;
+  font-family: var(--ltcm-font-family);
+  color: var(--ltcm-primary-color);
+}
+
+/* 矩阵雨效果（可选的背景装饰） */
+.theme-ltcm .matrix-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.03;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 98px,
+      rgba(0, 255, 65, 0.5) 100px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 98px,
+      rgba(0, 255, 65, 0.5) 100px
+    );
+}
+
+/* 数据可视化增强 */
+.theme-ltcm .metric-card {
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 65, 0.1) 0%, 
+    rgba(0, 255, 65, 0.05) 100%);
+  border: 1px solid var(--ltcm-secondary-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.theme-ltcm .metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 255, 65, 0.2);
+}
+
+.theme-ltcm .metric-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--ltcm-primary-color);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  font-family: var(--ltcm-font-family);
+}
+
+.theme-ltcm .metric-label {
+  font-size: 0.9rem;
+  color: var(--ltcm-text-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--ltcm-font-family);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .theme-ltcm h1 { font-size: 2rem; }
+  .theme-ltcm h2 { font-size: 1.5rem; }
+  .theme-ltcm h3 { font-size: 1.2rem; }
+  
+  .theme-ltcm .role-container {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .theme-ltcm .metric-value {
+    font-size: 2rem;
+  }
+}
+
+/* 滚动条样式 */
+.theme-ltcm ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.theme-ltcm ::-webkit-scrollbar-track {
+  background: rgba(0, 255, 65, 0.1);
+}
+
+.theme-ltcm ::-webkit-scrollbar-thumb {
+  background: var(--ltcm-secondary-color);
+  border-radius: 4px;
+}
+
+.theme-ltcm ::-webkit-scrollbar-thumb:hover {
+  background: var(--ltcm-primary-color);
+}
