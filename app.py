@@ -393,8 +393,9 @@ class CognitiveBlackBoxApp:
             col1, col2 = st.columns([1, 4])
             with col1:
                 if st.button("← 案例选择", key="return_to_selection_btn"):
-                    st.session_state.return_to_selection = True
-                    st.rerun()
+                   st.session_state.return_to_selection = True
+                   st.session_state.case_selection_made = False  # 添加这一行
+                   st.rerun()
             with col2:
                 st.title(self.app_title)
         else:
