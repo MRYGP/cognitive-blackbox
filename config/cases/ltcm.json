@@ -18,7 +18,7 @@
       "year": 1998
     }
   },
-  "acts_array": [
+  "acts": [
     {
       "act_id": 1,
       "act_name": "决策代入",
