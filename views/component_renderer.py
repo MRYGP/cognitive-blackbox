@@ -436,101 +436,147 @@ class ComponentRenderer:
     # 专门修复麦道夫案例的"四重专业质疑"AI调用问题
     # 在 views/component_renderer.py 中替换 _render_ai_challenge 方法
     def _render_ai_challenge(self, component: Dict[str, Any]) -> None:
-        """
-        🎯 专门修复麦道夫案例的"四重专业质疑"AI调用
-        """
-        st.subheader(component.get('title', 'AI 个性化质疑'))
-        
-        # 🔧 专门为麦道夫案例优化的AI调用逻辑
-        ai_config = component.get('ai_config', {})
+    """
+    🎯 修复AI回复过短问题的版本
+    """
+    st.subheader(component.get('title', 'AI 个性化质疑'))
+    
+    ai_config = component.get('ai_config', {})
+    ai_succeeded = False
+    debug_info = []
+    actual_ai_response = None  # 保存AI的实际回复
+    
+    # 检查AI配置是否启用
+    if not ai_config.get('enabled', True):
+        debug_info.append("❌ AI配置未启用")
         ai_succeeded = False
-        debug_info = []
+    else:
+        debug_info.append("✅ AI配置已启用")
         
-        # 检查AI配置是否启用
-        if not ai_config.get('enabled', True):
-            debug_info.append("❌ AI配置未启用")
-            ai_succeeded = False
-        else:
-            debug_info.append("✅ AI配置已启用")
-            
+        try:
+            # 🔧 步骤1: 检查AI引擎导入
             try:
-                # 🔧 步骤1: 检查AI引擎导入
-                try:
-                    from core.ai_engine import ai_engine
-                    debug_info.append("✅ AI引擎导入成功")
-                except Exception as import_error:
-                    debug_info.append(f"❌ AI引擎导入失败: {str(import_error)}")
-                    raise import_error
-                
-                # 🔧 步骤2: 构建上下文数据
-                try:
-                    context = {
-                        'case_name': 'madoff',  # 专门设置为麦道夫案例
-                        'current_step': st.session_state.get('current_step', 2),
-                        'user_decisions': st.session_state.get('user_decisions', {}),
-                        'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
-                        'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证')
-                    }
-                    debug_info.append(f"✅ 上下文构建成功: {len(context['user_decisions'])} 个决策")
-                except Exception as context_error:
-                    debug_info.append(f"❌ 上下文构建失败: {str(context_error)}")
-                    raise context_error
-                
-                # 🔧 步骤3: 格式化用户决策数据
-                try:
-                    user_decisions = context.get('user_decisions', {})
-                    if user_decisions:
-                        user_input = "用户的麦道夫案例决策分析：\n"
-                        for decision_id, decision_content in user_decisions.items():
-                            if decision_content and len(str(decision_content).strip()) > 0:
-                                content = str(decision_content)[:100] + "..." if len(str(decision_content)) > 100 else str(decision_content)
-                                user_input += f"- {decision_id}: {content}\n"
-                    else:
-                        user_input = "用户尚未完成决策分析，请基于麦道夫案例的典型投资决策进行质疑"
+                from core.ai_engine import ai_engine
+                debug_info.append("✅ AI引擎导入成功")
+            except Exception as import_error:
+                debug_info.append(f"❌ AI引擎导入失败: {str(import_error)}")
+                raise import_error
+            
+            # 🔧 步骤2: 构建上下文数据
+            try:
+                context = {
+                    'case_name': 'madoff',
+                    'current_step': st.session_state.get('current_step', 2),
+                    'user_decisions': st.session_state.get('user_decisions', {}),
+                    'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
+                    'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证')
+                }
+                debug_info.append(f"✅ 上下文构建成功: {len(context['user_decisions'])} 个决策")
+            except Exception as context_error:
+                debug_info.append(f"❌ 上下文构建失败: {str(context_error)}")
+                raise context_error
+            
+            # 🔧 步骤3: 构建更强的prompt
+            try:
+                user_decisions = context.get('user_decisions', {})
+                if user_decisions:
+                    # 🔧 关键修复：构建更强的prompt要求详细回复
+                    user_input = f"""
+你是华尔街最严厉的投资人，专门用犀利质疑击穿投资者的认知假设。
+
+用户在麦道夫案例中的决策：
+"""
+                    for decision_id, decision_content in user_decisions.items():
+                        if decision_content and len(str(decision_content).strip()) > 0:
+                            content = str(decision_content)[:150] + "..." if len(str(decision_content)) > 150 else str(decision_content)
+                            user_input += f"- {decision_id}: {content}\n"
                     
-                    debug_info.append(f"✅ 用户输入格式化成功: {len(user_input)} 字符")
-                except Exception as format_error:
-                    debug_info.append(f"❌ 输入格式化失败: {str(format_error)}")
-                    raise format_error
+                    user_input += """
+
+请从四个专业角度进行严厉质疑：
+1. 职能边界混淆质疑 - 攻击他们对权威的错误理解
+2. 信息不对称陷阱质疑 - 质疑他们接受信息黑盒
+3. 统计异常忽视质疑 - 攻击他们忽视不可能的完美业绩
+4. 独立尽调缺失质疑 - 质疑他们的群体从众行为
+
+要求：
+- 每个质疑至少100字，总共至少600字
+- 语气严厉、专业、充满压迫感
+- 使用大量具体数据和对比
+- 多用反问句制造紧张感
+- 直接点出用户决策中的认知漏洞
+"""
+                else:
+                    user_input = """
+你是华尔街最严厉的投资人，针对麦道夫案例进行四重专业质疑。
+
+用户尚未完成决策分析，请基于典型投资者在麦道夫案例中的常见错误，进行四重严厉质疑：
+
+1. 职能边界混淆质疑 - 为什么相信"前纳斯达克主席"的投资能力？
+2. 信息不对称陷阱质疑 - 为什么接受"商业机密"的黑盒策略？
+3. 统计异常忽视质疑 - 为什么忽视15年无亏损的统计异常？
+4. 独立尽调缺失质疑 - 为什么依赖他人推荐而不独立验证？
+
+要求：
+- 每个质疑至少100字，总共至少600字
+- 语气严厉、专业、充满压迫感
+- 使用大量具体数据和麦道夫案例事实
+- 多用反问句制造紧张感
+"""
                 
-                # 🔧 步骤4: 执行AI调用
-                with st.spinner("🤖 AI正在分析您的麦道夫案例决策，生成犀利质疑..."):
-                    try:
-                        ai_response, success = ai_engine.generate_response(
-                            'investor',  # 使用投资人角色
-                            user_input,
-                            context
-                        )
+                debug_info.append(f"✅ 强化prompt构建成功: {len(user_input)} 字符")
+            except Exception as format_error:
+                debug_info.append(f"❌ Prompt构建失败: {str(format_error)}")
+                raise format_error
+            
+            # 🔧 步骤4: 执行AI调用
+            with st.spinner("🤖 AI正在分析您的麦道夫案例决策，生成犀利质疑..."):
+                try:
+                    ai_response, success = ai_engine.generate_response(
+                        'investor',
+                        user_input,
+                        context
+                    )
+                    
+                    # 🔧 保存实际回复用于调试
+                    actual_ai_response = ai_response
+                    
+                    if success and ai_response:
+                        response_length = len(ai_response.strip())
+                        debug_info.append(f"✅ AI调用成功: {response_length} 字符")
                         
-                        if success and ai_response:
-                            response_length = len(ai_response.strip())
-                            debug_info.append(f"✅ AI调用成功: {response_length} 字符")
-                            
-                            if response_length > 50:  # 确保回复有意义
-                                ai_succeeded = True
-                                st.success("🤖 AI个性化质疑分析完成")
-                                st.markdown(ai_response)
-                            else:
-                                debug_info.append("❌ AI回复过短，视为失败")
+                        # 🔧 降低最小长度要求，提高成功率
+                        if response_length > 20:  # 从50降低到20
+                            ai_succeeded = True
+                            st.success("🤖 AI个性化质疑分析完成")
+                            st.markdown(ai_response)
                         else:
-                            debug_info.append(f"❌ AI调用返回失败: success={success}")
-                            
-                    except Exception as ai_error:
-                        debug_info.append(f"❌ AI调用异常: {str(ai_error)}")
-                        raise ai_error
+                            debug_info.append(f"❌ AI回复仍过短: {response_length} 字符")
+                    else:
+                        debug_info.append(f"❌ AI调用返回失败: success={success}")
                         
-            except Exception as e:
-                debug_info.append(f"❌ 总体错误: {str(e)}")
+                except Exception as ai_error:
+                    debug_info.append(f"❌ AI调用异常: {str(ai_error)}")
+                    raise ai_error
+                    
+        except Exception as e:
+            debug_info.append(f"❌ 总体错误: {str(e)}")
+    
+    # 🔧 显示详细调试信息
+    with st.expander("🔧 调试信息 (开发用)", expanded=False):
+        for info in debug_info:
+            st.text(info)
         
-        # 🔧 显示调试信息 (开发阶段)
-        with st.expander("🔧 调试信息 (开发用)", expanded=False):
-            for info in debug_info:
-                st.text(info)
-        
-        # 🔧 如果AI没成功，显示专门针对麦道夫案例的高质量静态内容
-        if not ai_succeeded:
-            st.info("😊 AI服务暂时繁忙，为您提供专业的麦道夫案例标准分析")
-            self._render_static_investor_challenges()
+        # 🔧 显示AI的实际回复内容
+        if actual_ai_response is not None:
+            st.text("📄 AI实际回复内容:")
+            st.code(actual_ai_response, language="text")
+            st.text(f"📏 实际字符数: {len(actual_ai_response)}")
+    
+    # 如果AI没成功，显示高质量的静态内容
+    if not ai_succeeded:
+        st.info("😊 AI服务暂时繁忙，为您提供专业的标准分析")
+        self._render_static_investor_challenges()
 
     def _render_madoff_specific_challenges(self) -> None:
         """
