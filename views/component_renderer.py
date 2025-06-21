@@ -434,192 +434,190 @@ class ComponentRenderer:
                 st.markdown(victim.get('story', ''))
 
     # 专门修复麦道夫案例的"四重专业质疑"AI调用问题
-# 在 views/component_renderer.py 中替换 _render_ai_challenge 方法
-
+    # 在 views/component_renderer.py 中替换 _render_ai_challenge 方法
     def _render_ai_challenge(self, component: Dict[str, Any]) -> None:
-    """
-    🎯 专门修复麦道夫案例的"四重专业质疑"AI调用
-    """
-    st.subheader(component.get('title', 'AI 个性化质疑'))
-    
-    # 🔧 专门为麦道夫案例优化的AI调用逻辑
-    ai_config = component.get('ai_config', {})
-    ai_succeeded = False
-    debug_info = []
-    
-    # 检查AI配置是否启用
-    if not ai_config.get('enabled', True):
-        debug_info.append("❌ AI配置未启用")
-        ai_succeeded = False
-    else:
-        debug_info.append("✅ AI配置已启用")
+        """
+        🎯 专门修复麦道夫案例的"四重专业质疑"AI调用
+        """
+        st.subheader(component.get('title', 'AI 个性化质疑'))
         
-        try:
-            # 🔧 步骤1: 检查AI引擎导入
-            try:
-                from core.ai_engine import ai_engine
-                debug_info.append("✅ AI引擎导入成功")
-            except Exception as import_error:
-                debug_info.append(f"❌ AI引擎导入失败: {str(import_error)}")
-                raise import_error
+        # 🔧 专门为麦道夫案例优化的AI调用逻辑
+        ai_config = component.get('ai_config', {})
+        ai_succeeded = False
+        debug_info = []
+        
+        # 检查AI配置是否启用
+        if not ai_config.get('enabled', True):
+            debug_info.append("❌ AI配置未启用")
+            ai_succeeded = False
+        else:
+            debug_info.append("✅ AI配置已启用")
             
-            # 🔧 步骤2: 构建上下文数据
             try:
-                context = {
-                    'case_name': 'madoff',  # 专门设置为麦道夫案例
-                    'current_step': st.session_state.get('current_step', 2),
-                    'user_decisions': st.session_state.get('user_decisions', {}),
-                    'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
-                    'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证')
-                }
-                debug_info.append(f"✅ 上下文构建成功: {len(context['user_decisions'])} 个决策")
-            except Exception as context_error:
-                debug_info.append(f"❌ 上下文构建失败: {str(context_error)}")
-                raise context_error
-            
-            # 🔧 步骤3: 格式化用户决策数据
-            try:
-                user_decisions = context.get('user_decisions', {})
-                if user_decisions:
-                    user_input = "用户的麦道夫案例决策分析：\n"
-                    for decision_id, decision_content in user_decisions.items():
-                        if decision_content and len(str(decision_content).strip()) > 0:
-                            content = str(decision_content)[:100] + "..." if len(str(decision_content)) > 100 else str(decision_content)
-                            user_input += f"- {decision_id}: {content}\n"
-                else:
-                    user_input = "用户尚未完成决策分析，请基于麦道夫案例的典型投资决策进行质疑"
-                
-                debug_info.append(f"✅ 用户输入格式化成功: {len(user_input)} 字符")
-            except Exception as format_error:
-                debug_info.append(f"❌ 输入格式化失败: {str(format_error)}")
-                raise format_error
-            
-            # 🔧 步骤4: 执行AI调用
-            with st.spinner("🤖 AI正在分析您的麦道夫案例决策，生成犀利质疑..."):
+                # 🔧 步骤1: 检查AI引擎导入
                 try:
-                    ai_response, success = ai_engine.generate_response(
-                        'investor',  # 使用投资人角色
-                        user_input,
-                        context
-                    )
-                    
-                    if success and ai_response:
-                        response_length = len(ai_response.strip())
-                        debug_info.append(f"✅ AI调用成功: {response_length} 字符")
-                        
-                        if response_length > 50:  # 确保回复有意义
-                            ai_succeeded = True
-                            st.success("🤖 AI个性化质疑分析完成")
-                            st.markdown(ai_response)
-                        else:
-                            debug_info.append("❌ AI回复过短，视为失败")
+                    from core.ai_engine import ai_engine
+                    debug_info.append("✅ AI引擎导入成功")
+                except Exception as import_error:
+                    debug_info.append(f"❌ AI引擎导入失败: {str(import_error)}")
+                    raise import_error
+                
+                # 🔧 步骤2: 构建上下文数据
+                try:
+                    context = {
+                        'case_name': 'madoff',  # 专门设置为麦道夫案例
+                        'current_step': st.session_state.get('current_step', 2),
+                        'user_decisions': st.session_state.get('user_decisions', {}),
+                        'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
+                        'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证')
+                    }
+                    debug_info.append(f"✅ 上下文构建成功: {len(context['user_decisions'])} 个决策")
+                except Exception as context_error:
+                    debug_info.append(f"❌ 上下文构建失败: {str(context_error)}")
+                    raise context_error
+                
+                # 🔧 步骤3: 格式化用户决策数据
+                try:
+                    user_decisions = context.get('user_decisions', {})
+                    if user_decisions:
+                        user_input = "用户的麦道夫案例决策分析：\n"
+                        for decision_id, decision_content in user_decisions.items():
+                            if decision_content and len(str(decision_content).strip()) > 0:
+                                content = str(decision_content)[:100] + "..." if len(str(decision_content)) > 100 else str(decision_content)
+                                user_input += f"- {decision_id}: {content}\n"
                     else:
-                        debug_info.append(f"❌ AI调用返回失败: success={success}")
-                        
-                except Exception as ai_error:
-                    debug_info.append(f"❌ AI调用异常: {str(ai_error)}")
-                    raise ai_error
+                        user_input = "用户尚未完成决策分析，请基于麦道夫案例的典型投资决策进行质疑"
                     
-        except Exception as e:
-            debug_info.append(f"❌ 总体错误: {str(e)}")
-    
-    # 🔧 显示调试信息 (开发阶段)
-    with st.expander("🔧 调试信息 (开发用)", expanded=False):
-        for info in debug_info:
-            st.text(info)
-    
-    # 🔧 如果AI没成功，显示专门针对麦道夫案例的高质量静态内容
-    if not ai_succeeded:
-        st.info("😊 AI服务暂时繁忙，为您提供专业的麦道夫案例标准分析")
-        self._render_madoff_specific_challenges()
+                    debug_info.append(f"✅ 用户输入格式化成功: {len(user_input)} 字符")
+                except Exception as format_error:
+                    debug_info.append(f"❌ 输入格式化失败: {str(format_error)}")
+                    raise format_error
+                
+                # 🔧 步骤4: 执行AI调用
+                with st.spinner("🤖 AI正在分析您的麦道夫案例决策，生成犀利质疑..."):
+                    try:
+                        ai_response, success = ai_engine.generate_response(
+                            'investor',  # 使用投资人角色
+                            user_input,
+                            context
+                        )
+                        
+                        if success and ai_response:
+                            response_length = len(ai_response.strip())
+                            debug_info.append(f"✅ AI调用成功: {response_length} 字符")
+                            
+                            if response_length > 50:  # 确保回复有意义
+                                ai_succeeded = True
+                                st.success("🤖 AI个性化质疑分析完成")
+                                st.markdown(ai_response)
+                            else:
+                                debug_info.append("❌ AI回复过短，视为失败")
+                        else:
+                            debug_info.append(f"❌ AI调用返回失败: success={success}")
+                            
+                    except Exception as ai_error:
+                        debug_info.append(f"❌ AI调用异常: {str(ai_error)}")
+                        raise ai_error
+                        
+            except Exception as e:
+                debug_info.append(f"❌ 总体错误: {str(e)}")
+        
+        # 🔧 显示调试信息 (开发阶段)
+        with st.expander("🔧 调试信息 (开发用)", expanded=False):
+            for info in debug_info:
+                st.text(info)
+        
+        # 🔧 如果AI没成功，显示专门针对麦道夫案例的高质量静态内容
+        if not ai_succeeded:
+            st.info("😊 AI服务暂时繁忙，为您提供专业的麦道夫案例标准分析")
+            self._render_madoff_specific_challenges()
 
-def _render_madoff_specific_challenges(self) -> None:
-    """
-    专门为麦道夫案例定制的四重质疑内容
-    """
-    st.markdown("""
-    ### 💼 华尔街投资人的四重专业质疑
-    
-    #### 🔍 第一重：职能边界混淆质疑
-    **"您确定自己有能力评估这种投资吗？"**
-    
-    您刚才说'前纳斯达克主席值得信任'。让我问您一个专业问题：**市场监管者 = 资产管理专家吗？**
-    
-    - 纳斯达克主席的核心职责：制定交易规则、监督市场秩序、确保信息披露
-    - 这和选股、择时、风险控制有什么关系？
-    - 这就像说'银监会主席一定是最好的银行家'，'证监会主席一定是最好的基金经理'
-    
-    **您为什么把监管能力，等同于投资能力？这是什么级别的逻辑错误？**
-    
-    ---
-    
-    #### 📊 第二重：信息不对称陷阱质疑
-    **"您获得的信息足够做出判断吗？"**
-    
-    您接受了'投资策略商业机密'的说辞。作为管理资金的专业人士，这合理吗？
-    
-    真正的投资大师怎么做？
-    - **巴菲特**：每年写股东信详细解释投资逻辑
-    - **达利欧**：把《原则》写成书公开分享  
-    - **西蒙斯**：虽然不透露具体算法，但量化策略的基本原理是公开的
-    
-    **什么样的'策略'需要完全黑盒操作？什么样的基金经理拒绝任何外部审计？**
-    
-    麦道夫连最基本的托管分离都拒绝！**这是策略保密还是欺诈隐瞒？**
-    
-    ---
-    
-    #### 🚨 第三重：统计异常忽视质疑
-    **"您注意到那些'不可能'的数据了吗？"**
-    
-    **15年年均11-12%，波动极小。** 作为专业投资人，您不觉得这在统计学上是不可能的吗？
-    
-    - **巴菲特50年平均收益20%**，但1974年亏损48%，2008年亏损32%
-    - 市场有周期，有黑天鹅，这是金融常识
-    - **什么样的策略能完全规避系统性风险？**
-    - **什么样的投资组合能15年如一日的稳定？**
-    
-    **答案只有一个：用新投资者的钱支付老投资者的收益！** 这就是庞氏骗局的数学特征。
-    
-    **您为什么忽视了这个最明显的红旗？**
-    
-    ---
-    
-    #### 🔍 第四重：独立尽调缺失质疑
-    **"您进行过真正独立的尽职调查吗？"**
-    
-    您说'汇丰银行、瑞士银行都投资了，应该安全'。
-    
-    请问：
-    - 汇丰的投委会亲自去麦道夫的办公室查看了交易记录吗？
-    - 瑞士银行的风控团队验证过他声称的期权持仓吗？
-    
-    **答案是没有。** 他们都是通过feeder fund（导管基金）投资的，都是看了同一份业绩报告，都是被同一个'前纳斯达克主席'的光环忽悠。
-    
-    **如果所有人的判断都基于同一个虚假信息，那么人数越多，错误越大！**
-    
-    **这不是集体智慧，这是集体愚蠢！**
-    
-    ---
-    
-    ### 🎯 终极击穿
-    
-    有一个房地产大亨叫Norman Levy，93岁临终前还对家人说：
-    
-    > *"假如世界上只有一位诚实的人，那就是伯尼。"*
-    
-    **结果呢？他的投资全部化为乌有。**
-    
-    现在我问您：**连这些世界级的聪明人都被骗了，您凭什么认为自己不会犯同样的错误？**
-    """)
+    def _render_madoff_specific_challenges(self) -> None:
+        """
+        专门为麦道夫案例定制的四重质疑内容
+        """
+        st.markdown("""
+        ### 💼 华尔街投资人的四重专业质疑
+        
+        #### 🔍 第一重：职能边界混淆质疑
+        **"您确定自己有能力评估这种投资吗？"**
+        
+        您刚才说'前纳斯达克主席值得信任'。让我问您一个专业问题：**市场监管者 = 资产管理专家吗？**
+        
+        - 纳斯达克主席的核心职责：制定交易规则、监督市场秩序、确保信息披露
+        - 这和选股、择时、风险控制有什么关系？
+        - 这就像说'银监会主席一定是最好的银行家'，'证监会主席一定是最好的基金经理'
+        
+        **您为什么把监管能力，等同于投资能力？这是什么级别的逻辑错误？**
+        
+        ---
+        
+        #### 📊 第二重：信息不对称陷阱质疑
+        **"您获得的信息足够做出判断吗？"**
+        
+        您接受了'投资策略商业机密'的说辞。作为管理资金的专业人士，这合理吗？
+        
+        真正的投资大师怎么做？
+        - **巴菲特**：每年写股东信详细解释投资逻辑
+        - **达利欧**：把《原则》写成书公开分享  
+        - **西蒙斯**：虽然不透露具体算法，但量化策略的基本原理是公开的
+        
+        **什么样的'策略'需要完全黑盒操作？什么样的基金经理拒绝任何外部审计？**
+        
+        麦道夫连最基本的托管分离都拒绝！**这是策略保密还是欺诈隐瞒？**
+        
+        ---
+        
+        #### 🚨 第三重：统计异常忽视质疑
+        **"您注意到那些'不可能'的数据了吗？"**
+        
+        **15年年均11-12%，波动极小。** 作为专业投资人，您不觉得这在统计学上是不可能的吗？
+        
+        - **巴菲特50年平均收益20%**，但1974年亏损48%，2008年亏损32%
+        - 市场有周期，有黑天鹅，这是金融常识
+        - **什么样的策略能完全规避系统性风险？**
+        - **什么样的投资组合能15年如一日的稳定？**
+        
+        **答案只有一个：用新投资者的钱支付老投资者的收益！** 这就是庞氏骗局的数学特征。
+        
+        **您为什么忽视了这个最明显的红旗？**
+        
+        ---
+        
+        #### 🔍 第四重：独立尽调缺失质疑
+        **"您进行过真正独立的尽职调查吗？"**
+        
+        您说'汇丰银行、瑞士银行都投资了，应该安全'。
+        
+        请问：
+        - 汇丰的投委会亲自去麦道夫的办公室查看了交易记录吗？
+        - 瑞士银行的风控团队验证过他声称的期权持仓吗？
+        
+        **答案是没有。** 他们都是通过feeder fund（导管基金）投资的，都是看了同一份业绩报告，都是被同一个'前纳斯达克主席'的光环忽悠。
+        
+        **如果所有人的判断都基于同一个虚假信息，那么人数越多，错误越大！**
+        
+        **这不是集体智慧，这是集体愚蠢！**
+        
+        ---
+        
+        ### 🎯 终极击穿
+        
+        有一个房地产大亨叫Norman Levy，93岁临终前还对家人说：
+        
+        > *"假如世界上只有一位诚实的人，那就是伯尼。"*
+        
+        **结果呢？他的投资全部化为乌有。**
+        
+        现在我问您：**连这些世界级的聪明人都被骗了，您凭什么认为自己不会犯同样的错误？**
+        """)
 
-# 使用说明：
-# 1. 在 views/component_renderer.py 中找到 _render_ai_challenge 方法
-# 2. 完全替换为上面的代码  
-# 3. 在 ComponentRenderer 类的末尾添加 _render_madoff_specific_challenges 方法
-# 4. 保存文件并重启应用
-# 5. 测试麦道夫案例的第二幕"四重专业质疑"功能
-
+    # 使用说明：
+    # 1. 在 views/component_renderer.py 中找到 _render_ai_challenge 方法
+    # 2. 完全替换为上面的代码  
+    # 3. 在 ComponentRenderer 类的末尾添加 _render_madoff_specific_challenges 方法
+    # 4. 保存文件并重启应用
+    # 5. 测试麦道夫案例的第二幕"四重专业质疑"功能
     def _render_static_investor_challenges(self) -> None:
         """渲染高质量的静态投资人质疑内容"""
         st.markdown("""
