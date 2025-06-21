@@ -471,33 +471,9 @@ class CognitiveBlackBoxApp:
                     st.rerun()
             else:
                 if st.button("完成体验", key="complete_experience"):
-                    st.success("🎉 恭喜完成案例体验！")
-                    st.balloons()
-                    
-                    # 统一使用重新开始体验按钮
-                    time.sleep(2)
-                    if st.button("🔄 重新开始体验", key="restart_experience"):
-                        # 重置所有状态，返回案例选择页面
-                        self._reset_to_case_selection()
-                        st.rerun()
-
-    def _reset_to_case_selection(self):
-        """重置状态到案例选择页面"""
-        # 清理案例相关状态
-        st.session_state.case_selection_made = False
-        st.session_state.return_to_selection = False
-        
-        # 清理案例数据
-        for key in ['selected_case', 'current_case', 'case_data', 'initialized']:
-            if key in st.session_state:
-                del st.session_state[key]
-        
-        # 重置进度
-        st.session_state.current_step = 1
-        
-        # 清理用户输入数据
-        if 'user_decisions' in st.session_state:
-            st.session_state.user_decisions = {}
+                st.success("🎉 恭喜完成案例体验！")
+                st.balloons()
+                st.info("💡 点击左上角「← 案例选择」可以选择其他案例")
 
     def _show_debug_info(self):
         """Show debug information if enabled (ENHANCED)"""
