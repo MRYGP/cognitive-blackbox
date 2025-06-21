@@ -1,5 +1,5 @@
 """
-Cognitive Black Box - AI Role Engine
+Cognitive Black Box - AI Role Engine (Debug Version)
 Manages four AI characters: Host, Investor, Mentor, Assistant
 Handles role switching, prompt management, and API calls
 """
@@ -83,14 +83,20 @@ class AIRoleEngine:
             if gemini_api_key:
                 genai.configure(api_key=gemini_api_key)
                 self.gemini_client = genai.GenerativeModel('gemini-2.0-flash-exp')
+                st.success("🔧 DEBUG: Gemini client initialized successfully")
+            else:
+                st.warning("🔧 DEBUG: Gemini API key not found")
             
             # Initialize Claude
             claude_api_key = os.getenv('ANTHROPIC_API_KEY') or st.secrets.get('ANTHROPIC_API_KEY')
             if claude_api_key:
                 self.claude_client = Anthropic(api_key=claude_api_key)
+                st.success("🔧 DEBUG: Claude client initialized successfully")
+            else:
+                st.warning("🔧 DEBUG: Claude API key not found")
                 
         except Exception as e:
-            st.error(f"API client initialization failed: {str(e)}")
+            st.error(f"🔧 DEBUG: API client initialization failed: {str(e)}")
     
     def load_role_prompt(self, role_name: str, case_name: str) -> str:
         """
@@ -103,6 +109,10 @@ class AIRoleEngine:
         Returns:
             str: Role-specific prompt
         """
+        
+        # 🔧 调试信息：检查输入参数
+        st.write("🔍 DEBUG: load_role_prompt调试信息")
+        st.write(f"🎭 加载角色: '{role_name}', 案例: '{case_name}'")
         
         # Base role prompt templates
         base_prompts = {
@@ -179,7 +189,17 @@ Current Stage: Act 4 - Capability Armament
 """
         }
         
-        return base_prompts.get(role_name, "")
+        # 🔧 调试信息：检查生成的prompt
+        final_prompt = base_prompts.get(role_name, "")
+        st.write(f"📝 角色是否存在于模板中: {role_name in base_prompts}")
+        st.write(f"📝 生成的prompt长度: {len(final_prompt)}")
+        
+        if final_prompt:
+            st.write(f"📝 Prompt开头100字符: {final_prompt[:100]}...")
+        else:
+            st.error(f"⚠️ ERROR: 角色'{role_name}'没有对应的prompt模板!")
+            
+        return final_prompt
     
     def generate_response(self, 
                          role_name: str, 
@@ -199,11 +219,28 @@ Current Stage: Act 4 - Capability Armament
             Tuple[str, bool]: (response content, success flag)
         """
         try:
+            # 🔧 调试信息：检查输入参数
+            st.write("🔍 DEBUG: generate_response调试信息")
+            st.write(f"🎭 角色: '{role_name}'")
+            st.write(f"💬 用户输入长度: {len(user_input) if user_input else 0}")
+            st.write(f"🔧 API偏好: {api_preference}")
+            st.write(f"📋 上下文键: {list(context.keys()) if context else []}")
+            
+            if user_input:
+                st.write(f"💬 用户输入前50字符: '{user_input[:50]}...'")
+            else:
+                st.warning("⚠️ 用户输入为空")
+            
             # Build complete prompt
             role_prompt = self.load_role_prompt(role_name, context.get('case_name', 'madoff'))
             
             # Add context information
             context_prompt = self._build_context_prompt(context)
+            
+            # 🔧 调试信息：检查context prompt
+            st.write(f"📋 Context prompt长度: {len(context_prompt)}")
+            if context_prompt:
+                st.write(f"📋 Context prompt内容: {context_prompt[:200]}...")
             
             # Build final prompt
             full_prompt = f"""
@@ -220,12 +257,22 @@ Please generate a response that fits the role characteristics based on role sett
 4. Maintain professionalism and impact
 """
             
+            # 🔧 调试信息：检查最终prompt
+            st.write(f"📝 最终prompt长度: {len(full_prompt)}")
+            if full_prompt.strip():
+                st.write(f"📝 最终prompt前200字符: {full_prompt[:200]}...")
+            else:
+                st.error("⚠️ ERROR: 最终prompt为空!")
+                return self._get_fallback_response(role_name), False
+            
             # Check cache
             cache_key = self._generate_cache_key(role_name, user_input, context)
             if self.cache_enabled and cache_key in self.response_cache:
+                st.info("🔧 DEBUG: 使用缓存响应")
                 return self.response_cache[cache_key], True
             
             # Call API to generate response
+            st.write(f"🔧 DEBUG: 准备调用API ({api_preference})")
             response = self._call_api(full_prompt, api_preference)
             
             if response:
@@ -235,12 +282,15 @@ Please generate a response that fits the role characteristics based on role sett
                 
                 # Log API call
                 self._log_api_call(role_name, api_preference, True)
+                st.success("🔧 DEBUG: API调用成功")
                 
                 return response, True
             else:
+                st.warning("🔧 DEBUG: API调用返回空响应，使用fallback")
                 return self._get_fallback_response(role_name), False
                 
         except Exception as e:
+            st.error(f"🔧 DEBUG: generate_response异常: {str(e)}")
             self._log_api_call(role_name, api_preference, False, str(e))
             return self._get_fallback_response(role_name), False
     
@@ -299,26 +349,52 @@ Please generate a response that fits the role characteristics based on role sett
     def _call_api(self, prompt: str, api_preference: str) -> Optional[str]:
         """Call AI API"""
         try:
+            st.write(f"🔧 DEBUG: _call_api 开始，偏好: {api_preference}")
+            st.write(f"🔧 DEBUG: Gemini client存在: {self.gemini_client is not None}")
+            st.write(f"🔧 DEBUG: Claude client存在: {self.claude_client is not None}")
+            
             if api_preference == 'gemini' and self.gemini_client:
+                st.write("🔧 DEBUG: 调用Gemini API")
                 return self._call_gemini(prompt)
             elif api_preference == 'claude' and self.claude_client:
+                st.write("🔧 DEBUG: 调用Claude API")
                 return self._call_claude(prompt)
             else:
                 # Fallback to available API
                 if self.gemini_client:
+                    st.write("🔧 DEBUG: 回退到Gemini API")
                     return self._call_gemini(prompt)
                 elif self.claude_client:
+                    st.write("🔧 DEBUG: 回退到Claude API")
                     return self._call_claude(prompt)
                 else:
+                    st.error("🔧 DEBUG: 没有可用的API客户端")
                     raise Exception("No available API client")
                     
         except Exception as e:
-            st.error(f"API call failed: {str(e)}")
+            st.error(f"🔧 DEBUG: _call_api异常: {str(e)}")
             return None
     
     def _call_gemini(self, prompt: str) -> Optional[str]:
         """Call Gemini API"""
         try:
+            # 🔧 调试信息：检查prompt内容
+            st.write("🔍 DEBUG: Gemini API调用调试信息")
+            st.write(f"📝 Prompt长度: {len(prompt) if prompt else 0}")
+            st.write(f"📝 Prompt是否为空: {not prompt or prompt.strip() == ''}")
+            
+            if prompt:
+                st.write(f"📝 Prompt前100字符: {prompt[:100]}...")
+            else:
+                st.error("⚠️ ERROR: Prompt完全为空!")
+                return None
+            
+            if not prompt.strip():
+                st.error("⚠️ ERROR: Prompt只包含空白字符!")
+                return None
+            
+            st.write("🔧 DEBUG: 开始调用Gemini API...")
+            
             response = self.gemini_client.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
@@ -327,18 +403,33 @@ Please generate a response that fits the role characteristics based on role sett
                 )
             )
             
+            st.write(f"🔧 DEBUG: Gemini响应对象: {response is not None}")
+            
             if response and response.text:
+                st.write(f"🔧 DEBUG: Gemini响应长度: {len(response.text)}")
+                st.write(f"🔧 DEBUG: Gemini响应前100字符: {response.text[:100]}...")
                 return response.text.strip()
             else:
+                st.warning("🔧 DEBUG: Gemini响应为空或无文本")
                 return None
                 
         except Exception as e:
-            st.error(f"Gemini API call failed: {str(e)}")
+            st.error(f"🔧 DEBUG: Gemini API call failed: {str(e)}")
             return None
     
     def _call_claude(self, prompt: str) -> Optional[str]:
         """Call Claude API"""
         try:
+            # 🔧 调试信息：检查prompt内容
+            st.write("🔍 DEBUG: Claude API调用调试信息")
+            st.write(f"📝 Prompt长度: {len(prompt) if prompt else 0}")
+            
+            if not prompt or not prompt.strip():
+                st.error("⚠️ ERROR: Claude API - Prompt为空!")
+                return None
+            
+            st.write("🔧 DEBUG: 开始调用Claude API...")
+            
             response = self.claude_client.messages.create(
                 model=self.api_config['claude']['model'],
                 messages=[{"role": "user", "content": prompt}],
@@ -346,20 +437,26 @@ Please generate a response that fits the role characteristics based on role sett
                 max_tokens=self.api_config['claude']['max_tokens']
             )
             
+            st.write(f"🔧 DEBUG: Claude响应对象: {response is not None}")
+            
             if response and response.content:
-                return response.content[0].text.strip()
+                response_text = response.content[0].text.strip()
+                st.write(f"🔧 DEBUG: Claude响应长度: {len(response_text)}")
+                st.write(f"🔧 DEBUG: Claude响应前100字符: {response_text[:100]}...")
+                return response_text
             else:
+                st.warning("🔧 DEBUG: Claude响应为空")
                 return None
                 
         except Exception as e:
-            st.error(f"Claude API call failed: {str(e)}")
+            st.error(f"🔧 DEBUG: Claude API call failed: {str(e)}")
             return None
     
     def _generate_cache_key(self, role_name: str, user_input: str, context: Dict[str, Any]) -> str:
         """Generate cache key"""
         key_components = [
             role_name,
-            user_input[:50],  # First 50 characters of user input
+            user_input[:50] if user_input else "",  # First 50 characters of user input
             context.get('current_step', 1),
             context.get('personalization_active', False)
         ]
@@ -374,7 +471,9 @@ Please generate a response that fits the role characteristics based on role sett
             'assistant': "Let's transform these insights into practical tools..."
         }
         
-        return fallback_responses.get(role_name, "Let's continue our analysis...")
+        response = fallback_responses.get(role_name, "Let's continue our analysis...")
+        st.info(f"🔧 DEBUG: 使用fallback响应 ({role_name}): {response[:50]}...")
+        return response
     
     def _generate_transition_message(self, new_role: str, context: Dict[str, Any]) -> str:
         """Generate role transition message"""
@@ -393,7 +492,9 @@ Please generate a response that fits the role characteristics based on role sett
         
         # This can be extended to a more complete logging system
         if not success:
-            st.error(f"API call failed: {role_name} - {error_message}")
+            st.error(f"🔧 DEBUG: API call failed: {role_name} - {error_message}")
+        else:
+            st.success(f"🔧 DEBUG: API call successful: {role_name} - {api_used}")
     
     def get_role_info(self, role_name: str) -> Dict[str, str]:
         """Get role information"""
@@ -406,6 +507,7 @@ Please generate a response that fits the role characteristics based on role sett
             available.append('gemini')
         if self.claude_client:
             available.append('claude')
+        st.write(f"🔧 DEBUG: 可用APIs: {available}")
         return available
     
     def clear_cache(self) -> None:
