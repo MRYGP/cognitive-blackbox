@@ -479,6 +479,7 @@ class CognitiveBlackBoxApp:
                         time.sleep(2)
                         if st.button("选择其他案例", key="select_another_case"):
                             st.session_state.return_to_selection = True
+                            st.session_state.case_selection_made = False
                             st.session_state.current_step = 1
                             st.rerun()
 
