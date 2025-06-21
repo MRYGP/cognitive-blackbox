@@ -56,7 +56,13 @@ class ComponentRenderer:
             'static_tool_template': self._render_static_tool_template,
             'progress_indicator': self._render_progress_indicator,
             'custom_input': self._render_custom_input,
-            'navigation': self._render_navigation
+            'navigation': self._render_navigation,
+            # 🔧 新增缺失的组件类型
+            'user_input_form': self._render_user_input_form,
+            'application_extension': self._render_application_extension,
+            'sharing_strategies': self._render_sharing_strategies,
+            'final_wisdom': self._render_final_wisdom,
+            'restart_option': self._render_restart_option
         }
 
     # ============= MAIN RENDER METHODS =============
@@ -144,9 +150,6 @@ class ComponentRenderer:
         🎯 修复AI工具生成组件
         """
         try:
-            # 导入修复后的AI引擎
-            from core.ai_engine import ai_engine
-            
             st.subheader(component.get('title', '定制你的专属决策系统'))
             
             # 获取用户输入数据
@@ -166,13 +169,23 @@ class ComponentRenderer:
             # 🔧 关键修复：构建正确的用户输入
             user_input = f"为用户生成名为'{user_system_name}'的个性化决策系统"
             
-            # 调用修复后的AI引擎
-            ai_response, success = ai_engine.generate_response('assistant', user_input, context)
+            # 尝试调用AI引擎
+            ai_succeeded = False
+            try:
+                # 🔧 确保正确导入AI引擎
+                from core.ai_engine import ai_engine
+                
+                ai_response, success = ai_engine.generate_response('assistant', user_input, context)
+                
+                if success and ai_response:
+                    ai_succeeded = True
+                    st.success("🎉 系统生成成功！")
+                    st.markdown(ai_response)
+                    
+            except Exception as e:
+                st.error(f"🔧 调试信息: AI工具生成失败 - {str(e)}")
             
-            if success and ai_response:
-                st.success("🎉 系统生成成功！")
-                st.markdown(ai_response)
-            else:
+            if not ai_succeeded:
                 # 使用高质量的fallback
                 st.info("🔧 正在为您生成个性化系统...")
                 fallback_content = f"""
@@ -209,7 +222,8 @@ class ComponentRenderer:
                 st.markdown(fallback_content)
                 
         except Exception as e:
-            st.error("⚠️ 系统生成遇到问题，请稍后重试")
+            st.error(f"⚠️ 系统生成遇到问题: {str(e)}")
+            st.error("请稍后重试或联系技术支持")
 
     def _render_decision_points(self, component: Dict[str, Any]) -> None:
         """修复决策点组件"""
@@ -266,6 +280,7 @@ class ComponentRenderer:
         通用AI调用方法，确保所有组件都使用修复后的引擎
         """
         try:
+            # 🔧 确保正确导入AI引擎
             from core.ai_engine import ai_engine
             
             # 构建上下文
@@ -287,6 +302,7 @@ class ComponentRenderer:
                 return component_data.get('fallback_content', '内容正在加载...')
                 
         except Exception as e:
+            st.error(f"🔧 调试信息: AI调用异常 - {str(e)}")
             return component_data.get('fallback_content', '系统暂时繁忙，请稍后重试')
 
     # ============= 其他组件渲染方法 =============
@@ -425,11 +441,14 @@ class ComponentRenderer:
         ai_succeeded = False
         
         if ai_config.get('enabled', True):
-            context = self._build_ai_context(ai_config)
-            user_input = self._format_user_decisions_for_ai(context)
-            
-            with st.spinner("AI正在分析您的决策逻辑，生成个性化质疑..."):
-                try:
+            try:
+                # 🔧 确保正确导入AI引擎
+                from core.ai_engine import ai_engine
+                
+                context = self._build_ai_context(ai_config)
+                user_input = self._format_user_decisions_for_ai(context)
+                
+                with st.spinner("AI正在分析您的决策逻辑，生成个性化质疑..."):
                     ai_response, success = ai_engine.generate_response(
                         'investor',
                         user_input,
@@ -440,8 +459,8 @@ class ComponentRenderer:
                         ai_succeeded = True
                         st.success("🤖 AI个性化分析完成")
                         st.markdown(ai_response)
-                except:
-                    pass  # 静默失败，使用fallback
+            except Exception as e:
+                st.error(f"🔧 调试信息: AI调用失败 - {str(e)}")
         
         # 如果AI没成功，显示高质量的静态内容
         if not ai_succeeded:
@@ -669,6 +688,121 @@ class ComponentRenderer:
                 current_step = st.session_state.get('current_step', 1)
                 st.session_state.current_step = max(1, current_step - 1)
             
+            st.rerun()
+
+    # ============= 🔧 新增缺失的组件渲染方法 =============
+    
+    def _render_user_input_form(self, component: Dict[str, Any]) -> None:
+        """Render user input form component"""
+        title = component.get('title', '用户输入')
+        fields = component.get('fields', [])
+        
+        st.subheader(title)
+        
+        form_data = {}
+        for field in fields:
+            field_id = field.get('field_id', '')
+            label = field.get('label', '')
+            field_type = field.get('type', 'text')
+            placeholder = field.get('placeholder', '')
+            default = field.get('default', '')
+            required = field.get('required', False)
+            
+            if field_type == 'text':
+                value = st.text_input(
+                    label, 
+                    value=default, 
+                    placeholder=placeholder,
+                    key=f"form_{field_id}"
+                )
+            elif field_type == 'textarea':
+                value = st.text_area(
+                    label, 
+                    value=default, 
+                    placeholder=placeholder,
+                    key=f"form_{field_id}"
+                )
+            elif field_type == 'selectbox':
+                options = field.get('options', [])
+                value = st.selectbox(
+                    label, 
+                    options, 
+                    key=f"form_{field_id}"
+                )
+            
+            if value:
+                form_data[field_id] = value
+                st.session_state[field_id] = value
+        
+        submit_button_text = component.get('submit_button_text', '提交')
+        if st.button(submit_button_text, use_container_width=True):
+            # Trigger AI generation if enabled
+            if component.get('ai_generation_trigger', False):
+                st.session_state.trigger_ai_generation = True
+                st.rerun()
+
+    def _render_application_extension(self, component: Dict[str, Any]) -> None:
+        """Render application extension component"""
+        title = component.get('title', '应用扩展')
+        description = component.get('description', '')
+        extensions = component.get('extensions', [])
+        
+        st.subheader(title)
+        if description:
+            st.markdown(description)
+        
+        for extension in extensions:
+            with st.expander(f"🎯 {extension.get('title', '')}", expanded=False):
+                st.markdown(extension.get('description', ''))
+                if extension.get('examples'):
+                    st.markdown("**示例应用：**")
+                    for example in extension['examples']:
+                        st.markdown(f"- {example}")
+
+    def _render_sharing_strategies(self, component: Dict[str, Any]) -> None:
+        """Render sharing strategies component"""
+        title = component.get('title', '分享策略')
+        strategies = component.get('strategies', [])
+        
+        st.subheader(title)
+        
+        for strategy in strategies:
+            with st.expander(f"📤 {strategy.get('title', '')}", expanded=False):
+                st.markdown(strategy.get('description', ''))
+                if strategy.get('steps'):
+                    st.markdown("**实施步骤：**")
+                    for i, step in enumerate(strategy['steps'], 1):
+                        st.markdown(f"{i}. {step}")
+
+    def _render_final_wisdom(self, component: Dict[str, Any]) -> None:
+        """Render final wisdom component"""
+        title = component.get('title', '最终智慧')
+        wisdom_points = component.get('wisdom_points', [])
+        call_to_action = component.get('call_to_action', '')
+        
+        st.subheader(title)
+        
+        for point in wisdom_points:
+            st.success(f"💡 **{point}**")
+        
+        if call_to_action:
+            st.info(call_to_action)
+
+    def _render_restart_option(self, component: Dict[str, Any]) -> None:
+        """Render restart option component"""
+        title = component.get('title', '重新开始')
+        description = component.get('description', '')
+        button_text = component.get('button_text', '重新开始体验')
+        
+        st.subheader(title)
+        if description:
+            st.markdown(description)
+        
+        if st.button(button_text, use_container_width=True, type="primary"):
+            # Clear all session state
+            for key in list(st.session_state.keys()):
+                if key not in ['initialized']:
+                    del st.session_state[key]
             st.rerun()
 
     # ============= 辅助方法 =============
