@@ -471,9 +471,9 @@ class CognitiveBlackBoxApp:
                     st.rerun()
             else:
                 if st.button("完成体验", key="complete_experience"):
-                st.success("🎉 恭喜完成案例体验！")
-                st.balloons()
-                st.info("💡 点击左上角「← 案例选择」可以选择其他案例")
+                    st.success("🎉 恭喜完成案例体验！")
+                    st.balloons()
+                    st.info("💡 点击左上角「← 案例选择」可以选择其他案例")
 
     def _show_debug_info(self):
         """Show debug information if enabled (ENHANCED)"""
