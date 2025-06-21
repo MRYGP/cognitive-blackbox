@@ -530,7 +530,7 @@ class ComponentRenderer:
         # 🔧 如果AI没成功，显示专门针对麦道夫案例的高质量静态内容
         if not ai_succeeded:
             st.info("😊 AI服务暂时繁忙，为您提供专业的麦道夫案例标准分析")
-            self._render_madoff_specific_challenges()
+            self._render_static_investor_challenges()
 
     def _render_madoff_specific_challenges(self) -> None:
         """
