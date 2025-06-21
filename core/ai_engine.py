@@ -1,38 +1,60 @@
-# core/ai_engine.py - Enhanced Version by C (架构师)
 """
-Cognitive Black Box - 优化后的AI引擎
-解决个性化工具生成中的模板变量问题和质量问题
+Cognitive Black Box - Enhanced AI Engine (Debug Version)
+Manages AI responses with intelligent fallback mechanisms
 """
 
 import streamlit as st
-import asyncio
 import os
-import time
-import json
-import re
-from typing import Dict, Any, Optional, Tuple, List
-from datetime import datetime
-from pathlib import Path
 import logging
+from typing import Dict, Any, Optional, Tuple
+from datetime import datetime
 
-# AI API imports with error handling
+# Import AI libraries
 try:
     import google.generativeai as genai
     from anthropic import Anthropic
     APIS_AVAILABLE = True
 except ImportError:
+    st.warning("AI API libraries not available. Running in fallback mode.")
     APIS_AVAILABLE = False
-    st.warning("AI API libraries not installed. Running in fallback mode.")
+
+class PersonalizationAnalyzer:
+    """Analyzes user context for personalization"""
+    
+    def analyze_user_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze user context for personalization"""
+        user_decisions = context.get('user_decisions', {})
+        
+        # Simple analysis based on user inputs
+        decision_style = "balanced"
+        if len(user_decisions) > 2:
+            decision_style = "analytical"
+        elif any("risk" in str(v).lower() for v in user_decisions.values()):
+            decision_style = "risk-aware"
+        
+        return {
+            'decision_style': decision_style,
+            'risk_preference': 'moderate',
+            'key_decision': list(user_decisions.keys())[0] if user_decisions else 'unknown'
+        }
+
+class AIRole:
+    """Represents an AI role with its configuration"""
+    
+    def __init__(self, role_id: str, config: Dict[str, Any]):
+        self.role_id = role_id
+        self.system_prompt = config.get('system_prompt', '')
+        self.fallback_responses = config.get('fallback_responses', {})
 
 class EnhancedAIEngine:
     """
-    🔧 优化后的AI引擎 - 解决个性化质量问题
+    🔧 Enhanced AI Engine with Debug Capabilities
     
-    主要改进：
-    1. 智能变量替换系统
-    2. 增强的个性化prompt工程
-    3. 高质量降级机制
-    4. 用户输入智能分析
+    Main improvements:
+    1. Intelligent variable replacement system
+    2. Enhanced personalization prompt engineering
+    3. High-quality fallback mechanism
+    4. User input intelligent analysis
     """
     
     def __init__(self):
@@ -42,22 +64,22 @@ class EnhancedAIEngine:
         self.response_cache = {}
         self.performance_metrics = {}
         
-        # 初始化AI客户端
+        # Initialize AI clients
         self._initialize_ai_clients()
         
-        # 🔧 新增：个性化分析器
+        # 🔧 New: Personalization analyzer
         self.personalization_analyzer = PersonalizationAnalyzer()
         
     def _load_config(self) -> Dict[str, Any]:
-        """加载AI引擎配置"""
+        """Load AI engine configuration"""
         return {
-            'max_response_time': 8.0,  # 优化后的超时设置
+            'max_response_time': 8.0,  # Optimized timeout setting
             'cache_ttl': 3600,
             'max_retries': 2,
             'fallback_enabled': True,
             'api_config': {
                 'gemini': {
-                    'model': 'gemini-2.5-pro', 
+                    'model': 'gemini-2.0-flash-exp', 
                     'temperature': 0.7, 
                     'max_tokens': 2048
                 }
@@ -65,88 +87,158 @@ class EnhancedAIEngine:
         }
     
     def _load_roles(self) -> Dict[str, Any]:
-        """加载AI角色配置"""
+        """Load AI role configurations"""
         roles = {}
         try:
-            from config import load_prompt_config
+            # Create basic role configurations
+            role_configs = {
+                'host': {
+                    'system_prompt': 'You are a professional host...',
+                    'fallback_responses': {'technical_issue': 'Thank you for your participation...'}
+                },
+                'investor': {
+                    'system_prompt': 'You are a Wall Street investor...',
+                    'fallback_responses': {'technical_issue': 'Let me look at the data...'}
+                },
+                'mentor': {
+                    'system_prompt': 'You are a cognitive science mentor...',
+                    'fallback_responses': {'technical_issue': 'From a cognitive perspective...'}
+                },
+                'assistant': {
+                    'system_prompt': 'You are an executive assistant...',
+                    'fallback_responses': {'technical_issue': 'Let me create tools for you...'}
+                }
+            }
             
-            role_ids = ['host', 'investor', 'mentor', 'assistant']
-            for role_id in role_ids:
-                role_config = load_prompt_config(role_id)
-                if role_config:
-                    roles[role_id] = AIRole(role_id, role_config)
+            for role_id, config in role_configs.items():
+                roles[role_id] = AIRole(role_id, config)
                     
         except Exception as e:
             self.logger.error(f"Failed to load roles: {e}")
+            st.error(f"🔧 DEBUG: Failed to load roles: {e}")
             
         return roles
     
     def _initialize_ai_clients(self):
-        """初始化AI客户端"""
+        """Initialize AI clients"""
         self.gemini_client = None
         self.claude_client = None
         
+        st.write("🔧 DEBUG: Initializing AI clients...")
+        
         if APIS_AVAILABLE:
             try:
-                # 初始化Gemini
-                api_key = os.getenv('GEMINI_API_KEY')
+                # Initialize Gemini
+                api_key = os.getenv('GEMINI_API_KEY') or st.secrets.get('GEMINI_API_KEY')
+                st.write(f"🔧 DEBUG: Gemini API key found: {bool(api_key)}")
+                
                 if api_key:
                     genai.configure(api_key=api_key)
-                    self.gemini_client = genai.GenerativeModel('gemini-2.5-pro')
+                    self.gemini_client = genai.GenerativeModel('gemini-2.0-flash-exp')
+                    st.success("🔧 DEBUG: Gemini client initialized successfully")
+                else:
+                    st.warning("🔧 DEBUG: No Gemini API key found")
                     
-                # 初始化Claude
-                claude_key = os.getenv('ANTHROPIC_API_KEY')
+                # Initialize Claude
+                claude_key = os.getenv('ANTHROPIC_API_KEY') or st.secrets.get('ANTHROPIC_API_KEY')
+                st.write(f"🔧 DEBUG: Claude API key found: {bool(claude_key)}")
+                
                 if claude_key:
                     self.claude_client = Anthropic(api_key=claude_key)
+                    st.success("🔧 DEBUG: Claude client initialized successfully")
+                else:
+                    st.warning("🔧 DEBUG: No Claude API key found")
                     
             except Exception as e:
                 self.logger.error(f"Failed to initialize AI clients: {e}")
+                st.error(f"🔧 DEBUG: Failed to initialize AI clients: {e}")
+        else:
+            st.warning("🔧 DEBUG: API libraries not available")
     
     def generate_response(self, role_id: str, user_input: str, context: Dict[str, Any]) -> Tuple[str, bool]:
         """
-        🔧 增强的响应生成 - 核心优化方法
+        🔧 Enhanced response generation - Core optimized method
         
-        改进：
-        1. 智能个性化分析
-        2. 高质量prompt构建
-        3. 完美的降级机制
+        Improvements:
+        1. Intelligent personalization analysis
+        2. High-quality prompt construction
+        3. Perfect fallback mechanism
         """
         try:
-            # 🔧 Step 1: 分析用户个性化数据
-            personalization_data = self.personalization_analyzer.analyze_user_context(context)
+            # 🔧 DEBUG: Check input parameters
+            st.write("🔍 DEBUG: generate_response input analysis")
+            st.write(f"🎭 Role ID: '{role_id}'")
+            st.write(f"💬 User input length: {len(user_input) if user_input else 0}")
+            st.write(f"📋 Context keys: {list(context.keys()) if context else []}")
             
-            # 🔧 Step 2: 构建高质量prompt
+            if user_input:
+                st.write(f"💬 User input preview: '{user_input[:100]}...'")
+            else:
+                st.warning("⚠️ User input is empty!")
+            
+            # 🔧 Step 1: Analyze user personalization data
+            st.write("🔧 DEBUG: Step 1 - Analyzing personalization data...")
+            personalization_data = self.personalization_analyzer.analyze_user_context(context)
+            st.write(f"📊 Personalization data: {personalization_data}")
+            
+            # 🔧 Step 2: Build high-quality prompt
+            st.write("🔧 DEBUG: Step 2 - Building enhanced prompt...")
             enhanced_prompt = self._build_enhanced_prompt(role_id, user_input, context, personalization_data)
             
-            # 🔧 Step 3: 尝试AI生成
-            if self.gemini_client and role_id == 'assistant':
+            # 🔧 DEBUG: Check prompt quality
+            st.write(f"📝 Enhanced prompt length: {len(enhanced_prompt)}")
+            if enhanced_prompt:
+                st.write(f"📝 Enhanced prompt preview: {enhanced_prompt[:200]}...")
+            else:
+                st.error("⚠️ ERROR: Enhanced prompt is empty!")
+                return self._generate_enhanced_fallback(role_id, context, personalization_data), False
+            
+            # 🔧 Step 3: Try AI generation
+            st.write("🔧 DEBUG: Step 3 - Attempting AI generation...")
+            if self.gemini_client and role_id in ['assistant', 'investor']:
+                st.write("🔧 DEBUG: Using Gemini client...")
                 ai_response = self._call_gemini_api(enhanced_prompt)
                 if ai_response and self._validate_response_quality(ai_response, context):
+                    st.success("🔧 DEBUG: AI response validated successfully")
                     return ai_response, True
+                else:
+                    st.warning("🔧 DEBUG: AI response validation failed")
+            else:
+                st.write("🔧 DEBUG: Gemini client not available or role not supported")
             
-            # 🔧 Step 4: 高质量降级
+            # 🔧 Step 4: High-quality fallback
+            st.write("🔧 DEBUG: Step 4 - Using enhanced fallback...")
             fallback_response = self._generate_enhanced_fallback(role_id, context, personalization_data)
+            st.info(f"🔧 DEBUG: Generated fallback response length: {len(fallback_response)}")
             return fallback_response, True
             
         except Exception as e:
             self.logger.error(f"Error in generate_response: {e}")
+            st.error(f"🔧 DEBUG: Exception in generate_response: {e}")
             return self._generate_enhanced_fallback(role_id, context, {}), False
     
     def _build_enhanced_prompt(self, role_id: str, user_input: str, context: Dict[str, Any], 
                              personalization_data: Dict[str, Any]) -> str:
         """
-        🔧 构建增强的个性化prompt
+        🔧 Build enhanced personalized prompt
         """
+        st.write(f"🔧 DEBUG: Building prompt for role '{role_id}'")
+        
         role = self.roles.get(role_id)
         if not role:
+            st.error(f"⚠️ ERROR: Role '{role_id}' not found in roles")
             return ""
             
-        # 获取用户输入数据
+        # Get user input data
         user_system_name = context.get('user_system_name', '高级决策安全系统')
         user_core_principle = context.get('user_core_principle', '权威越强，越要验证')
         user_decisions = context.get('user_decisions', {})
         
-        # 构建个性化prompt
+        st.write(f"🔧 DEBUG: User system name: '{user_system_name}'")
+        st.write(f"🔧 DEBUG: User core principle: '{user_core_principle}'")
+        st.write(f"🔧 DEBUG: User decisions count: {len(user_decisions)}")
+        
+        # Build personalized prompt
         if role_id == 'assistant':
             prompt = f"""
 你是专业的高级执行助理，为用户创建个性化的决策安全系统。
@@ -173,17 +265,51 @@ class EnhancedAIEngine:
 - 基于用户的决策风格进行个性化
 - 语言专业且易于理解
 """
+        elif role_id == 'investor':
+            case_name = context.get('case_name', 'madoff')
+            prompt = f"""
+你是华尔街资深投资人，专门用尖锐质疑和残酷数据击穿用户的认知假设。
+
+案例背景：{case_name}案例
+用户输入：{user_input}
+
+基于用户的选择，进行四重专业质疑：
+1. 职能边界混淆质疑
+2. 信息不对称陷阱质疑  
+3. 统计异常忽视质疑
+4. 独立尽调缺失质疑
+
+要求：
+- 直接尖锐，不留情面
+- 使用大量具体数字和对比
+- 反问句和挑战性表达
+- 营造紧张感和压力
+"""
         else:
-            prompt = role.system_prompt
+            prompt = role.system_prompt + f"\n\nUser Input: {user_input}\nContext: {context.get('case_name', 'madoff')}"
             
+        st.write(f"🔧 DEBUG: Built prompt length: {len(prompt)}")
         return prompt
     
     def _call_gemini_api(self, prompt: str) -> Optional[str]:
-        """调用Gemini API"""
+        """Call Gemini API with debug information"""
         try:
+            # 🔧 DEBUG: Check prompt before API call
+            st.write("🔍 DEBUG: Gemini API call analysis")
+            st.write(f"📝 Prompt length: {len(prompt) if prompt else 0}")
+            st.write(f"📝 Prompt is empty: {not prompt or prompt.strip() == ''}")
+            st.write(f"🔧 Gemini client exists: {self.gemini_client is not None}")
+            
+            if not prompt or not prompt.strip():
+                st.error("⚠️ ERROR: Cannot call Gemini API - prompt is empty!")
+                return None
+            
             if not self.gemini_client:
+                st.error("⚠️ ERROR: Gemini client is not initialized!")
                 return None
                 
+            st.write("🔧 DEBUG: Making Gemini API call...")
+            
             response = self.gemini_client.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
@@ -192,48 +318,69 @@ class EnhancedAIEngine:
                 )
             )
             
+            st.write(f"🔧 DEBUG: Gemini response object exists: {response is not None}")
+            
             if response and response.text:
-                return response.text.strip()
+                response_text = response.text.strip()
+                st.write(f"🔧 DEBUG: Gemini response length: {len(response_text)}")
+                st.write(f"🔧 DEBUG: Gemini response preview: {response_text[:150]}...")
+                return response_text
+            else:
+                st.warning("🔧 DEBUG: Gemini response is empty or has no text")
+                return None
                 
         except Exception as e:
             self.logger.error(f"Gemini API call failed: {e}")
-            
-        return None
+            st.error(f"🔧 DEBUG: Gemini API call exception: {e}")
+            return None
     
     def _validate_response_quality(self, response: str, context: Dict[str, Any]) -> bool:
-        """验证AI响应质量"""
+        """Validate AI response quality"""
+        st.write("🔧 DEBUG: Validating response quality...")
+        
         if not response or len(response) < 100:
+            st.warning(f"🔧 DEBUG: Response too short: {len(response) if response else 0} chars")
             return False
             
-        # 检查是否包含未替换的变量
+        # Check for unreplaced variables
         if '[user_system_name]' in response or '[user_core_principle]' in response:
+            st.warning("🔧 DEBUG: Response contains unreplaced variables")
             return False
             
-        # 检查个性化程度
+        # Check personalization level
         user_system_name = context.get('user_system_name', '')
         if user_system_name and user_system_name not in response:
+            st.warning(f"🔧 DEBUG: Response doesn't contain user system name: '{user_system_name}'")
             return False
-            
+        
+        st.success("🔧 DEBUG: Response quality validation passed")
         return True
     
     def _generate_enhanced_fallback(self, role_id: str, context: Dict[str, Any], 
                                   personalization_data: Dict[str, Any]) -> str:
         """
-        🔧 生成高质量的个性化降级内容
+        🔧 Generate high-quality personalized fallback content
         """
+        st.write(f"🔧 DEBUG: Generating fallback for role '{role_id}'")
+        
         if role_id != 'assistant':
             role = self.roles.get(role_id)
             if role and role.fallback_responses:
-                return role.fallback_responses.get('technical_issue', 
+                fallback = role.fallback_responses.get('technical_issue', 
                     "系统正在为您准备个性化内容，请稍候...")
+                st.info(f"🔧 DEBUG: Using basic fallback for {role_id}")
+                return fallback
         
-        # 🔧 为助理角色生成完美的个性化降级内容
+        # 🔧 Generate perfect personalized fallback content for assistant role
         user_system_name = context.get('user_system_name', '高级决策安全系统')
         user_core_principle = context.get('user_core_principle', '权威越强，越要验证')
         
-        # 分析用户决策类型
+        # Analyze user decision type
         user_decisions = context.get('user_decisions', {})
         decision_style = self._analyze_decision_style(user_decisions)
+        
+        st.write(f"🔧 DEBUG: User system name: '{user_system_name}'")
+        st.write(f"🔧 DEBUG: Decision style: '{decision_style}'")
         
         fallback_content = f"""
 ## 🎯 {user_system_name}
@@ -274,106 +421,65 @@ class EnhancedAIEngine:
 1. **日常决策检查**：每个重要决策前运行四维验证
 2. **团队共享**：将此系统分享给决策团队成员
 3. **定期回顾**：每月回顾决策质量，优化系统
-4. **持续学习**：收集新的认知偏误案例，完善系统
+4. **持续改进**：根据实际使用效果调整验证标准
 
-### 🎯 核心价值
-这个系统将帮助您在面临类似麦道夫式的"完美"投资机会时，保持理性和警觉，避免被权威光环迷惑。
+### 📊 成功指标
 
-**记住：{user_core_principle}**
+- 重要决策前进行验证的比例（目标：100%）
+- 因提前发现风险而避免的损失
+- 团队决策质量的整体提升
+
+### 💡 核心原则
+**{user_core_principle}** - 这将成为您决策安全的基石。
 """
         
+        st.success(f"🔧 DEBUG: Generated enhanced fallback content ({len(fallback_content)} chars)")
         return fallback_content
     
     def _analyze_decision_style(self, user_decisions: Dict[str, Any]) -> str:
-        """分析用户决策风格"""
-        final_decision = str(user_decisions.get('decision_final', ''))
+        """Analyze user decision style"""
+        if not user_decisions:
+            return "平衡型决策者"
         
-        if '全力投入' in final_decision or '大胆' in final_decision:
-            return "激进型决策者"
-        elif '拒绝' in final_decision or '暂不投资' in final_decision:
-            return "谨慎型决策者"
+        # Simple analysis based on decision content
+        decision_text = " ".join(str(v) for v in user_decisions.values()).lower()
+        
+        if "数据" in decision_text or "分析" in decision_text:
+            return "数据驱动型决策者"
+        elif "直觉" in decision_text or "感觉" in decision_text:
+            return "直觉驱动型决策者"
+        elif "团队" in decision_text or "讨论" in decision_text:
+            return "协作型决策者"
         else:
             return "平衡型决策者"
     
     def _get_personalized_warnings(self, decision_style: str) -> str:
-        """获取个性化预警内容"""
+        """Get personalized warnings based on decision style"""
         warnings = {
-            "激进型决策者": """
-- ⚠️ **过度自信陷阱**：您的果断优势可能变成盲目自信
-- ⚠️ **速度压力**：避免因追求效率而跳过验证步骤
-- ⚠️ **机会成本焦虑**：不要因为害怕错过而降低标准
+            "数据驱动型决策者": """
+- 🚨 **数据完整性陷阱**：过度依赖历史数据，忽视突发变化
+- 🚨 **分析瘫痪风险**：追求完美数据而错失时机
+- 🚨 **量化偏见**：将不可量化的重要因素排除在外
 """,
-            "谨慎型决策者": """
-- ⚠️ **过度谨慎**：不要因为太多验证而错失真正的机会
-- ⚠️ **分析瘫痪**：避免无休止的信息收集而不决策
-- ⚠️ **权威依赖**：谨慎的人更容易过度信任专家意见
+            "直觉驱动型决策者": """
+- 🚨 **确认偏误风险**：只看到支持直觉的信息
+- 🚨 **过度自信陷阱**：高估个人判断的准确性
+- 🚨 **情绪决策风险**：在压力下做出冲动决定
+""",
+            "协作型决策者": """
+- 🚨 **群体思维陷阱**：团队一致性掩盖个体理性
+- 🚨 **责任分散效应**：集体决策导致个人责任感下降
+- 🚨 **决策延迟风险**：过度协商错失最佳时机
 """,
             "平衡型决策者": """
-- ⚠️ **模糊地带**：在模棱两可时，倾向于系统性验证
-- ⚠️ **一致性偏误**：避免为了保持一致而忽略新信息
-- ⚠️ **社会证明依赖**：不要因为"大家都在做"而降低标准
+- 🚨 **决策摇摆风险**：在不同方法间摇摆不定
+- 🚨 **表面平衡陷阱**：看似全面实则缺乏深度
+- 🚨 **关键时刻犹豫**：在紧急情况下缺乏果断性
 """
         }
         
         return warnings.get(decision_style, warnings["平衡型决策者"])
 
 
-class PersonalizationAnalyzer:
-    """
-    🔧 个性化分析器 - 分析用户特征和偏好
-    """
-    
-    def analyze_user_context(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """分析用户上下文，提取个性化特征"""
-        user_decisions = context.get('user_decisions', {})
-        
-        # 分析决策风格
-        decision_style = self._analyze_decision_style(user_decisions)
-        
-        # 分析风险偏好
-        risk_preference = self._analyze_risk_preference(user_decisions)
-        
-        # 提取关键决策
-        key_decision = user_decisions.get('decision_final', '未知决策')
-        
-        return {
-            'decision_style': decision_style,
-            'risk_preference': risk_preference,
-            'key_decision': key_decision,
-            'personalization_level': 'high'
-        }
-    
-    def _analyze_decision_style(self, decisions: Dict[str, Any]) -> str:
-        """分析决策风格"""
-        final_decision = str(decisions.get('decision_final', ''))
-        
-        if '全力投入' in final_decision:
-            return "激进型"
-        elif '拒绝' in final_decision or '暂不' in final_decision:
-            return "谨慎型"
-        else:
-            return "平衡型"
-    
-    def _analyze_risk_preference(self, decisions: Dict[str, Any]) -> str:
-        """分析风险偏好"""
-        decision_reasons = str(decisions.get('decision_reasoning', ''))
-        
-        if '风险' in decision_reasons and '控制' in decision_reasons:
-            return "风险控制"
-        elif '机会' in decision_reasons and '收益' in decision_reasons:
-            return "收益导向"
-        else:
-            return "适中平衡"
-
-
-class AIRole:
-    """AI角色定义"""
-    def __init__(self, role_id: str, config: Dict[str, Any]):
-        self.role_id = role_id
-        self.name = config.get('name', '')
-        self.system_prompt = config.get('system_prompt', '')
-        self.fallback_responses = config.get('fallback_responses', {})
-
-
-# 全局AI引擎实例
+# Global instance
 ai_engine = EnhancedAIEngine()
