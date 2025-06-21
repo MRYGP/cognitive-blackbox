@@ -433,70 +433,55 @@ class ComponentRenderer:
             with st.expander(f"{victim.get('name', '')} - {victim.get('title', '')}"):
                 st.markdown(victim.get('story', ''))
 
-    # 专门修复麦道夫案例的"四重专业质疑"AI调用问题
-    # 在 views/component_renderer.py 中替换 _render_ai_challenge 方法
     def _render_ai_challenge(self, component: Dict[str, Any]) -> None:
+        """
+        🎯 修复AI成功后仍显示静态内容的逻辑问题
+        """
         st.subheader(component.get('title', 'AI 个性化质疑'))
         
         ai_config = component.get('ai_config', {})
-        ai_succeeded = False
+        ai_generated_content = None  # 🔧 直接保存AI生成的内容
         debug_info = []
-        actual_ai_response = None
         
         if not ai_config.get('enabled', True):
             debug_info.append("❌ AI配置未启用")
-            ai_succeeded = False
         else:
             debug_info.append("✅ AI配置已启用")
             
             try:
-                # 🔧 步骤1: 检查AI引擎导入
-                try:
-                    from core.ai_engine import ai_engine
-                    debug_info.append("✅ AI引擎导入成功")
-                    
-                    # 🔧 检查AI引擎状态
-                    if hasattr(ai_engine, 'gemini_client') and ai_engine.gemini_client:
-                        debug_info.append("✅ Gemini客户端已连接")
-                    else:
-                        debug_info.append("❌ Gemini客户端未连接")
-                        
-                except Exception as import_error:
-                    debug_info.append(f"❌ AI引擎导入失败: {str(import_error)}")
-                    raise import_error
+                # 🔧 步骤1: 检查AI引擎
+                from core.ai_engine import ai_engine
+                debug_info.append("✅ AI引擎导入成功")
                 
-                # 🔧 步骤2: 构建上下文数据
-                try:
-                    context = {
-                        'case_name': 'madoff',
-                        'current_step': st.session_state.get('current_step', 2),
-                        'user_decisions': st.session_state.get('user_decisions', {}),
-                        'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
-                        'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证')
-                    }
-                    debug_info.append(f"✅ 上下文构建成功: {len(context['user_decisions'])} 个决策")
-                except Exception as context_error:
-                    debug_info.append(f"❌ 上下文构建失败: {str(context_error)}")
-                    raise context_error
+                if hasattr(ai_engine, 'gemini_client') and ai_engine.gemini_client:
+                    debug_info.append("✅ Gemini客户端已连接")
+                else:
+                    debug_info.append("❌ Gemini客户端未连接")
                 
-                # 🔧 步骤3: 构建简化但强制中文的prompt
-                try:
-                    user_decisions = context.get('user_decisions', {})
-                    
-                    # 🔧 关键修复：简化prompt，强制中文输出
-                    user_input = "请用中文进行四重专业质疑，"
-                    
-                    if user_decisions:
-                        user_input += "基于用户在麦道夫案例中的决策："
-                        for decision_id, decision_content in user_decisions.items():
-                            if decision_content and len(str(decision_content).strip()) > 0:
-                                content = str(decision_content)[:100]
-                                user_input += f"{decision_id}: {content}。"
-                    else:
-                        user_input += "基于麦道夫案例的典型投资决策错误："
-                    
-                    # 🔧 强制要求中文和具体结构
-                    user_input += """
+                # 🔧 步骤2: 构建上下文
+                context = {
+                    'case_name': 'madoff',
+                    'current_step': st.session_state.get('current_step', 2),
+                    'user_decisions': st.session_state.get('user_decisions', {}),
+                    'user_system_name': st.session_state.get('user_system_name', '高级决策安全系统'),
+                    'user_core_principle': st.session_state.get('user_core_principle', '权威越强，越要验证')
+                }
+                debug_info.append(f"✅ 上下文构建成功: {len(context['user_decisions'])} 个决策")
+                
+                # 🔧 步骤3: 构建prompt
+                user_decisions = context.get('user_decisions', {})
+                user_input = "请用中文进行四重专业质疑，"
+                
+                if user_decisions:
+                    user_input += "基于用户在麦道夫案例中的决策："
+                    for decision_id, decision_content in user_decisions.items():
+                        if decision_content and len(str(decision_content).strip()) > 0:
+                            content = str(decision_content)[:100]
+                            user_input += f"{decision_id}: {content}。"
+                else:
+                    user_input += "基于麦道夫案例的典型投资决策错误："
+                
+                user_input += """
 
     必须用中文回复，包含四个质疑：
     1. 职能边界混淆质疑
@@ -505,86 +490,62 @@ class ComponentRenderer:
     4. 独立尽调缺失质疑
 
     每个质疑要犀利专业，直击要害。"""
-                    
-                    debug_info.append(f"✅ 简化prompt构建成功: {len(user_input)} 字符")
-                except Exception as format_error:
-                    debug_info.append(f"❌ Prompt构建失败: {str(format_error)}")
-                    raise format_error
                 
-                # 🔧 步骤4: 尝试直接调用而不是通过角色系统
+                debug_info.append(f"✅ Prompt构建成功: {len(user_input)} 字符")
+                
+                # 🔧 步骤4: AI调用
                 with st.spinner("🤖 AI正在生成个性化质疑..."):
                     try:
-                        # 🔧 关键修复：直接调用AI引擎而不依赖角色配置
+                        # 直接调用AI引擎
                         if hasattr(ai_engine, '_call_gemini_api'):
-                            # 直接调用Gemini API
                             ai_response = ai_engine._call_gemini_api(user_input)
                             success = ai_response is not None
                         else:
-                            # 回退到原方法
                             ai_response, success = ai_engine.generate_response('investor', user_input, context)
                         
-                        actual_ai_response = ai_response
-                        
-                        if success and ai_response:
+                        if success and ai_response and len(str(ai_response).strip()) > 20:
                             response_length = len(str(ai_response).strip())
                             debug_info.append(f"✅ AI调用成功: {response_length} 字符")
                             
-                            # 🔧 检查是否是中文回复
+                            # 检查中文内容
                             if any('\u4e00' <= char <= '\u9fff' for char in str(ai_response)):
                                 debug_info.append("✅ AI返回中文内容")
                             else:
                                 debug_info.append("❌ AI返回非中文内容")
                             
-                            if response_length > 20:
-                                ai_succeeded = True
-                                st.success("🤖 AI个性化质疑分析完成")
-                                st.markdown(ai_response)
-                            else:
-                                debug_info.append(f"❌ AI回复过短: {response_length} 字符")
+                            # 🔧 关键修复：直接保存AI内容，跳过复杂逻辑
+                            ai_generated_content = ai_response
+                            debug_info.append("✅ AI内容保存成功，将显示AI生成内容")
+                            
                         else:
-                            debug_info.append(f"❌ AI调用失败: success={success}")
+                            debug_info.append(f"❌ AI回复无效: success={success}, length={len(str(ai_response)) if ai_response else 0}")
                             
                     except Exception as ai_error:
                         debug_info.append(f"❌ AI调用异常: {str(ai_error)}")
                         
-                        # 🔧 备用方案：使用简单的文本生成
-                        try:
-                            debug_info.append("🔄 尝试备用AI调用方法")
-                            simple_prompt = "请用中文生成对麦道夫投资案例的四重专业质疑，要求犀利专业。"
-                            backup_response = ai_engine._call_gemini_api(simple_prompt) if hasattr(ai_engine, '_call_gemini_api') else None
-                            
-                            if backup_response and len(backup_response) > 20:
-                                actual_ai_response = backup_response
-                                ai_succeeded = True
-                                st.success("🤖 AI备用方案成功")
-                                st.markdown(backup_response)
-                                debug_info.append(f"✅ 备用方案成功: {len(backup_response)} 字符")
-                        except:
-                            debug_info.append("❌ 备用方案也失败")
-                        
             except Exception as e:
                 debug_info.append(f"❌ 总体错误: {str(e)}")
         
-        # 🔧 显示详细调试信息
-        with st.expander("🔧 调试信息 (开发用)", expanded=True):  # 默认展开便于调试
+        # 🔧 显示调试信息
+        with st.expander("🔧 调试信息 (开发用)", expanded=False):
             for info in debug_info:
                 st.text(info)
             
-            if actual_ai_response is not None:
-                st.text("📄 AI实际回复内容:")
-                st.code(actual_ai_response, language="text")
-                st.text(f"📏 实际字符数: {len(str(actual_ai_response))}")
-                
-                # 🔧 检查回复的语言特征
-                if isinstance(actual_ai_response, str):
-                    chinese_chars = sum(1 for char in actual_ai_response if '\u4e00' <= char <= '\u9fff')
-                    english_chars = sum(1 for char in actual_ai_response if char.isalpha() and ord(char) < 256)
-                    st.text(f"🔤 中文字符: {chinese_chars}, 英文字符: {english_chars}")
+            if ai_generated_content:
+                st.text("📄 AI生成内容:")
+                st.code(ai_generated_content, language="text")
+                st.text(f"📏 字符数: {len(str(ai_generated_content))}")
         
-        # 如果AI没成功，显示高质量的静态内容
-        if not ai_succeeded:
-            st.info("😊 AI服务暂时繁忙，为您提供专业的标准分析")
-            self._render_static_investor_challenges()
+        # 🔧 关键修复：简化显示逻辑
+        if ai_generated_content:
+            st.success("🤖 AI个性化质疑分析完成")
+            st.markdown(ai_generated_content)
+            # 🔧 成功后直接返回，不执行后续代码
+            return
+        
+        # 只有AI完全失败才显示静态内容
+        st.info("😊 AI服务暂时繁忙，为您提供专业的标准分析")
+        self._render_static_investor_challenges()
 
     def _render_madoff_specific_challenges(self) -> None:
         """
