@@ -404,7 +404,7 @@ class CognitiveBlackBoxApp:
         st.caption(self.app_description)
         
         # Show case metadata (ENHANCED)
-        current_case = st.session_state.get('current_case', self.default_case)
+        current_case = st.session_state.get('selected_case', self.default_case)
         case_metadata = case_manager.get_case_metadata(current_case)
         
         if case_metadata:
@@ -416,7 +416,7 @@ class CognitiveBlackBoxApp:
     def _main_app_logic(self):
         """Main application logic using S's component-based architecture (EXISTING)"""
         current_step = st.session_state.get('current_step', 1)
-        current_case = st.session_state.get('current_case', self.default_case)
+        current_case = st.session_state.get('selected_case', self.default_case)
         
         # Load case data using new schema
         case_data = case_manager.load_case(current_case)
