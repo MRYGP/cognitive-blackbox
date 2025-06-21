@@ -446,42 +446,58 @@ class CognitiveBlackBoxApp:
             st.error(f"未找到第 {current_step} 幕")
 
     def _render_navigation(self, current_act: Dict[str, Any], total_acts: int):
-        """Render navigation controls (EXISTING)"""
-        current_step = st.session_state.get('current_step', 1)
-        
-        st.divider()
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        
-        with col1:
-            if current_step > 1:
-                if st.button("← 上一幕", key="prev_step"):
-                    st.session_state.current_step = current_step - 1
+    """Render navigation controls (统一使用重新开始体验按钮)"""
+    current_step = st.session_state.get('current_step', 1)
+    
+    st.divider()
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col1:
+        if current_step > 1:
+            if st.button("← 上一幕", key="prev_step"):
+                st.session_state.current_step = current_step - 1
+                st.rerun()
+    
+    with col2:
+        # Progress indicator
+        progress = current_step / total_acts
+        st.progress(progress, text=f"进度: {current_step}/{total_acts}")
+    
+    with col3:
+        if current_step < total_acts:
+            if st.button("下一幕 →", key="next_step"):
+                st.session_state.current_step = current_step + 1
+                st.rerun()
+        else:
+            if st.button("完成体验", key="complete_experience"):
+                st.success("🎉 恭喜完成案例体验！")
+                st.balloons()
+                
+                # 统一使用重新开始体验按钮
+                time.sleep(2)
+                if st.button("🔄 重新开始体验", key="restart_experience"):
+                    # 重置所有状态，返回案例选择页面
+                    self._reset_to_case_selection()
                     st.rerun()
-        
-        with col2:
-            # Progress indicator
-            progress = current_step / total_acts
-            st.progress(progress, text=f"进度: {current_step}/{total_acts}")
-        
-        with col3:
-            if current_step < total_acts:
-                if st.button("下一幕 →", key="next_step"):
-                    st.session_state.current_step = current_step + 1
-                    st.rerun()
-            else:
-                if st.button("完成体验", key="complete_experience"):
-                    st.success("🎉 恭喜完成案例体验！")
-                    st.balloons()
-                    
-                    # Option to return to case selection (NEW)
-                    if CASE_SELECTION_AVAILABLE:
-                        time.sleep(2)
-                        if st.button("选择其他案例", key="select_another_case"):
-                            st.session_state.return_to_selection = True
-                            st.session_state.case_selection_made = False
-                            st.session_state.current_step = 1
-                            st.rerun()
+
+    def _reset_to_case_selection(self):
+    """重置状态到案例选择页面"""
+    # 清理案例相关状态
+    st.session_state.case_selection_made = False
+    st.session_state.return_to_selection = False
+    
+    # 清理案例数据
+    for key in ['selected_case', 'current_case', 'case_data', 'initialized']:
+        if key in st.session_state:
+            del st.session_state[key]
+    
+    # 重置进度
+    st.session_state.current_step = 1
+    
+    # 清理用户输入数据
+    if 'user_decisions' in st.session_state:
+        st.session_state.user_decisions = {}
 
     def _show_debug_info(self):
         """Show debug information if enabled (ENHANCED)"""
