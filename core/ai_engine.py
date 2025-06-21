@@ -1,5 +1,5 @@
 """
-Cognitive Black Box - Enhanced AI Engine (Debug Version)
+Cognitive Black Box - Enhanced AI Engine
 Manages AI responses with intelligent fallback mechanisms
 """
 
@@ -48,9 +48,9 @@ class AIRole:
 
 class EnhancedAIEngine:
     """
-    🔧 Enhanced AI Engine with Debug Capabilities
+    Enhanced AI Engine with intelligent fallback mechanisms
     
-    Main improvements:
+    Features:
     1. Intelligent variable replacement system
     2. Enhanced personalization prompt engineering
     3. High-quality fallback mechanism
@@ -67,13 +67,13 @@ class EnhancedAIEngine:
         # Initialize AI clients
         self._initialize_ai_clients()
         
-        # 🔧 New: Personalization analyzer
+        # Personalization analyzer
         self.personalization_analyzer = PersonalizationAnalyzer()
         
     def _load_config(self) -> Dict[str, Any]:
         """Load AI engine configuration"""
         return {
-            'max_response_time': 8.0,  # Optimized timeout setting
+            'max_response_time': 8.0,
             'cache_ttl': 3600,
             'max_retries': 2,
             'fallback_enabled': True,
@@ -115,7 +115,6 @@ class EnhancedAIEngine:
                     
         except Exception as e:
             self.logger.error(f"Failed to load roles: {e}")
-            st.error(f"🔧 DEBUG: Failed to load roles: {e}")
             
         return roles
     
@@ -124,109 +123,64 @@ class EnhancedAIEngine:
         self.gemini_client = None
         self.claude_client = None
         
-        st.write("🔧 DEBUG: Initializing AI clients...")
-        
         if APIS_AVAILABLE:
             try:
                 # Initialize Gemini
                 api_key = os.getenv('GEMINI_API_KEY') or st.secrets.get('GEMINI_API_KEY')
-                st.write(f"🔧 DEBUG: Gemini API key found: {bool(api_key)}")
-                
                 if api_key:
                     genai.configure(api_key=api_key)
                     self.gemini_client = genai.GenerativeModel('gemini-2.0-flash-exp')
-                    st.success("🔧 DEBUG: Gemini client initialized successfully")
-                else:
-                    st.warning("🔧 DEBUG: No Gemini API key found")
                     
                 # Initialize Claude
                 claude_key = os.getenv('ANTHROPIC_API_KEY') or st.secrets.get('ANTHROPIC_API_KEY')
-                st.write(f"🔧 DEBUG: Claude API key found: {bool(claude_key)}")
-                
                 if claude_key:
                     self.claude_client = Anthropic(api_key=claude_key)
-                    st.success("🔧 DEBUG: Claude client initialized successfully")
-                else:
-                    st.warning("🔧 DEBUG: No Claude API key found")
                     
             except Exception as e:
                 self.logger.error(f"Failed to initialize AI clients: {e}")
-                st.error(f"🔧 DEBUG: Failed to initialize AI clients: {e}")
-        else:
-            st.warning("🔧 DEBUG: API libraries not available")
     
     def generate_response(self, role_id: str, user_input: str, context: Dict[str, Any]) -> Tuple[str, bool]:
         """
-        🔧 Enhanced response generation - Core optimized method
+        Enhanced response generation with intelligent fallback
         
-        Improvements:
-        1. Intelligent personalization analysis
-        2. High-quality prompt construction
-        3. Perfect fallback mechanism
+        Args:
+            role_id: Role identifier (host/investor/mentor/assistant)
+            user_input: User input text
+            context: Current context dictionary
+            
+        Returns:
+            Tuple[str, bool]: (response_text, success_flag)
         """
         try:
-            # 🔧 DEBUG: Check input parameters
-            st.write("🔍 DEBUG: generate_response input analysis")
-            st.write(f"🎭 Role ID: '{role_id}'")
-            st.write(f"💬 User input length: {len(user_input) if user_input else 0}")
-            st.write(f"📋 Context keys: {list(context.keys()) if context else []}")
-            
-            if user_input:
-                st.write(f"💬 User input preview: '{user_input[:100]}...'")
-            else:
-                st.warning("⚠️ User input is empty!")
-            
-            # 🔧 Step 1: Analyze user personalization data
-            st.write("🔧 DEBUG: Step 1 - Analyzing personalization data...")
+            # Step 1: Analyze user personalization data
             personalization_data = self.personalization_analyzer.analyze_user_context(context)
-            st.write(f"📊 Personalization data: {personalization_data}")
             
-            # 🔧 Step 2: Build high-quality prompt
-            st.write("🔧 DEBUG: Step 2 - Building enhanced prompt...")
+            # Step 2: Build high-quality prompt
             enhanced_prompt = self._build_enhanced_prompt(role_id, user_input, context, personalization_data)
             
-            # 🔧 DEBUG: Check prompt quality
-            st.write(f"📝 Enhanced prompt length: {len(enhanced_prompt)}")
-            if enhanced_prompt:
-                st.write(f"📝 Enhanced prompt preview: {enhanced_prompt[:200]}...")
-            else:
-                st.error("⚠️ ERROR: Enhanced prompt is empty!")
+            # Validate prompt before API call
+            if not enhanced_prompt or not enhanced_prompt.strip():
                 return self._generate_enhanced_fallback(role_id, context, personalization_data), False
             
-            # 🔧 Step 3: Try AI generation
-            st.write("🔧 DEBUG: Step 3 - Attempting AI generation...")
+            # Step 3: Try AI generation
             if self.gemini_client and role_id in ['assistant', 'investor']:
-                st.write("🔧 DEBUG: Using Gemini client...")
                 ai_response = self._call_gemini_api(enhanced_prompt)
                 if ai_response and self._validate_response_quality(ai_response, context):
-                    st.success("🔧 DEBUG: AI response validated successfully")
                     return ai_response, True
-                else:
-                    st.warning("🔧 DEBUG: AI response validation failed")
-            else:
-                st.write("🔧 DEBUG: Gemini client not available or role not supported")
             
-            # 🔧 Step 4: High-quality fallback
-            st.write("🔧 DEBUG: Step 4 - Using enhanced fallback...")
+            # Step 4: High-quality fallback
             fallback_response = self._generate_enhanced_fallback(role_id, context, personalization_data)
-            st.info(f"🔧 DEBUG: Generated fallback response length: {len(fallback_response)}")
             return fallback_response, True
             
         except Exception as e:
             self.logger.error(f"Error in generate_response: {e}")
-            st.error(f"🔧 DEBUG: Exception in generate_response: {e}")
             return self._generate_enhanced_fallback(role_id, context, {}), False
     
     def _build_enhanced_prompt(self, role_id: str, user_input: str, context: Dict[str, Any], 
                              personalization_data: Dict[str, Any]) -> str:
-        """
-        🔧 Build enhanced personalized prompt
-        """
-        st.write(f"🔧 DEBUG: Building prompt for role '{role_id}'")
-        
+        """Build enhanced personalized prompt"""
         role = self.roles.get(role_id)
         if not role:
-            st.error(f"⚠️ ERROR: Role '{role_id}' not found in roles")
             return ""
             
         # Get user input data
@@ -234,11 +188,7 @@ class EnhancedAIEngine:
         user_core_principle = context.get('user_core_principle', '权威越强，越要验证')
         user_decisions = context.get('user_decisions', {})
         
-        st.write(f"🔧 DEBUG: User system name: '{user_system_name}'")
-        st.write(f"🔧 DEBUG: User core principle: '{user_core_principle}'")
-        st.write(f"🔧 DEBUG: User decisions count: {len(user_decisions)}")
-        
-        # Build personalized prompt
+        # Build personalized prompt based on role
         if role_id == 'assistant':
             prompt = f"""
 你是专业的高级执行助理，为用户创建个性化的决策安全系统。
@@ -286,30 +236,20 @@ class EnhancedAIEngine:
 - 营造紧张感和压力
 """
         else:
+            # For host and mentor roles
             prompt = role.system_prompt + f"\n\nUser Input: {user_input}\nContext: {context.get('case_name', 'madoff')}"
             
-        st.write(f"🔧 DEBUG: Built prompt length: {len(prompt)}")
         return prompt
     
     def _call_gemini_api(self, prompt: str) -> Optional[str]:
-        """Call Gemini API with debug information"""
+        """Call Gemini API with error handling"""
         try:
-            # 🔧 DEBUG: Check prompt before API call
-            st.write("🔍 DEBUG: Gemini API call analysis")
-            st.write(f"📝 Prompt length: {len(prompt) if prompt else 0}")
-            st.write(f"📝 Prompt is empty: {not prompt or prompt.strip() == ''}")
-            st.write(f"🔧 Gemini client exists: {self.gemini_client is not None}")
-            
             if not prompt or not prompt.strip():
-                st.error("⚠️ ERROR: Cannot call Gemini API - prompt is empty!")
                 return None
             
             if not self.gemini_client:
-                st.error("⚠️ ERROR: Gemini client is not initialized!")
                 return None
                 
-            st.write("🔧 DEBUG: Making Gemini API call...")
-            
             response = self.gemini_client.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
@@ -318,69 +258,47 @@ class EnhancedAIEngine:
                 )
             )
             
-            st.write(f"🔧 DEBUG: Gemini response object exists: {response is not None}")
-            
             if response and response.text:
-                response_text = response.text.strip()
-                st.write(f"🔧 DEBUG: Gemini response length: {len(response_text)}")
-                st.write(f"🔧 DEBUG: Gemini response preview: {response_text[:150]}...")
-                return response_text
+                return response.text.strip()
             else:
-                st.warning("🔧 DEBUG: Gemini response is empty or has no text")
                 return None
                 
         except Exception as e:
             self.logger.error(f"Gemini API call failed: {e}")
-            st.error(f"🔧 DEBUG: Gemini API call exception: {e}")
             return None
     
     def _validate_response_quality(self, response: str, context: Dict[str, Any]) -> bool:
         """Validate AI response quality"""
-        st.write("🔧 DEBUG: Validating response quality...")
-        
         if not response or len(response) < 100:
-            st.warning(f"🔧 DEBUG: Response too short: {len(response) if response else 0} chars")
             return False
             
         # Check for unreplaced variables
         if '[user_system_name]' in response or '[user_core_principle]' in response:
-            st.warning("🔧 DEBUG: Response contains unreplaced variables")
             return False
             
         # Check personalization level
         user_system_name = context.get('user_system_name', '')
         if user_system_name and user_system_name not in response:
-            st.warning(f"🔧 DEBUG: Response doesn't contain user system name: '{user_system_name}'")
             return False
         
-        st.success("🔧 DEBUG: Response quality validation passed")
         return True
     
     def _generate_enhanced_fallback(self, role_id: str, context: Dict[str, Any], 
                                   personalization_data: Dict[str, Any]) -> str:
-        """
-        🔧 Generate high-quality personalized fallback content
-        """
-        st.write(f"🔧 DEBUG: Generating fallback for role '{role_id}'")
-        
+        """Generate high-quality personalized fallback content"""
         if role_id != 'assistant':
             role = self.roles.get(role_id)
             if role and role.fallback_responses:
-                fallback = role.fallback_responses.get('technical_issue', 
+                return role.fallback_responses.get('technical_issue', 
                     "系统正在为您准备个性化内容，请稍候...")
-                st.info(f"🔧 DEBUG: Using basic fallback for {role_id}")
-                return fallback
         
-        # 🔧 Generate perfect personalized fallback content for assistant role
+        # Generate personalized fallback content for assistant role
         user_system_name = context.get('user_system_name', '高级决策安全系统')
         user_core_principle = context.get('user_core_principle', '权威越强，越要验证')
         
         # Analyze user decision type
         user_decisions = context.get('user_decisions', {})
         decision_style = self._analyze_decision_style(user_decisions)
-        
-        st.write(f"🔧 DEBUG: User system name: '{user_system_name}'")
-        st.write(f"🔧 DEBUG: Decision style: '{decision_style}'")
         
         fallback_content = f"""
 ## 🎯 {user_system_name}
@@ -433,7 +351,6 @@ class EnhancedAIEngine:
 **{user_core_principle}** - 这将成为您决策安全的基石。
 """
         
-        st.success(f"🔧 DEBUG: Generated enhanced fallback content ({len(fallback_content)} chars)")
         return fallback_content
     
     def _analyze_decision_style(self, user_decisions: Dict[str, Any]) -> str:
